@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { Document } from "react-pdf"
 import { PdfPage } from "./PdfPage"
 import type { IPdfViewerProps } from "@/Interface/IPdfViewer"
@@ -6,9 +6,8 @@ import type { IPdfViewerProps } from "@/Interface/IPdfViewer"
 import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"
 
-export function PdfViewer({ file, onDocumentLoaded }: IPdfViewerProps) {
+export function PdfViewer({ file, onDocumentLoaded, containerRef }: IPdfViewerProps) {
   const [totalPages, setTotalPages] = useState(0)
-  const containerRef = useRef<HTMLDivElement>(null)
 
   const onLoadSuccess = ({ numPages }: { numPages: number }) => {
     setTotalPages(numPages)

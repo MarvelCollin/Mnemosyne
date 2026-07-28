@@ -104,6 +104,7 @@ function App() {
       <PdfViewer
         file={document.file}
         zoom={zoomControls.zoom}
+        theme={theme}
         onDocumentLoaded={handleDocumentLoaded}
         onPageChange={handlePageChangeFromScroll}
         containerRef={viewerRef}

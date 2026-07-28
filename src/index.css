@@ -124,15 +124,15 @@
   }
 }
 
-.dark .react-pdf__Page canvas {
+.dark [data-invert] .react-pdf__Page canvas {
   filter: invert(0.85) hue-rotate(180deg);
 }
 
-.dark .react-pdf__Page .react-pdf__Page__textContent {
+.dark [data-invert] .react-pdf__Page .react-pdf__Page__textContent {
   filter: invert(0.85) hue-rotate(180deg);
 }
 
-.dark .react-pdf__Page .react-pdf__Page__annotations {
+.dark [data-invert] .react-pdf__Page .react-pdf__Page__annotations {
   filter: invert(0.85) hue-rotate(180deg);
 }
 

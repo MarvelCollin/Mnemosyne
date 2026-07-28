@@ -3,7 +3,7 @@ import type { IAutoScroll, IAutoScrollControls } from "@/interfaces/IAutoScroll"
 
 const MIN_SPEED = 1
 const MAX_SPEED = 10
-const BASE_PX_PER_FRAME = 0.15
+const BASE_PX_PER_FRAME = 0.05
 
 export function useAutoScroll(containerRef: React.RefObject<HTMLElement | null>): IAutoScrollControls {
   const [autoScroll, setAutoScroll] = useState<IAutoScroll>({

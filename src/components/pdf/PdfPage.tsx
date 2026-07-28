@@ -92,6 +92,7 @@ export const PdfPage = memo(function PdfPage({ pageNumber, scale, theme, onRende
   return (
     <div ref={wrapperRef}>
       <Page
+        key={`${pageNumber}-${theme}`}
         pageNumber={pageNumber}
         scale={scale}
         renderTextLayer={true}

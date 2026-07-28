@@ -11,7 +11,7 @@ export interface GDriveItem {
 export type GDriveLinkType = "file" | "folder" | null
 
 export function getApiKey(): string | null {
-  return localStorage.getItem(API_KEY_STORAGE)
+  return localStorage.getItem(API_KEY_STORAGE) || import.meta.env.VITE_GOOGLE_DRIVE_API_KEY || null
 }
 
 export function setApiKey(key: string) {

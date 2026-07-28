@@ -1,11 +1,10 @@
 import { useState, useRef, useCallback } from "react"
-import { BookOpen, Link, Key, Loader2, X } from "lucide-react"
+import { BookOpen, Link, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { GoogleDriveBrowser } from "./GoogleDriveBrowser"
 import {
   parseGDriveUrl,
   getApiKey,
-  setApiKey,
   downloadFile,
   getFileName,
 } from "@/lib/googleDrive"
@@ -19,8 +18,6 @@ export function PdfUploader({ onFileSelect }: IPdfUploaderProps) {
   const [driveUrl, setDriveUrl] = useState("")
   const [driveError, setDriveError] = useState<string | null>(null)
   const [driveLoading, setDriveLoading] = useState(false)
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false)
-  const [apiKeyValue, setApiKeyValue] = useState(() => getApiKey() || "")
   const [browseFolderId, setBrowseFolderId] = useState<string | null>(null)
 
   const handleFile = useCallback(
@@ -66,8 +63,7 @@ export function PdfUploader({ onFileSelect }: IPdfUploaderProps) {
   const ensureApiKey = (): string | null => {
     const key = getApiKey()
     if (!key) {
-      setShowApiKeyInput(true)
-      setDriveError("Enter your Google Drive API key first")
+      setDriveError("Google Drive API key not configured")
       return null
     }
     return key
@@ -103,14 +99,6 @@ export function PdfUploader({ onFileSelect }: IPdfUploaderProps) {
     } finally {
       setDriveLoading(false)
     }
-  }
-
-  const handleSaveApiKey = () => {
-    const trimmed = apiKeyValue.trim()
-    if (!trimmed) return
-    setApiKey(trimmed)
-    setShowApiKeyInput(false)
-    setDriveError(null)
   }
 
   if (browseFolderId) {
@@ -167,36 +155,7 @@ export function PdfUploader({ onFileSelect }: IPdfUploaderProps) {
             <Button onClick={handleDriveSubmit} disabled={!driveUrl.trim() || driveLoading}>
               {driveLoading ? <Loader2 className="size-4 animate-spin" /> : "Open"}
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowApiKeyInput((v) => !v)}
-              title="API key settings"
-            >
-              <Key className="size-4" />
-            </Button>
           </div>
-
-          {showApiKeyInput && (
-            <div className="mt-2 flex items-center gap-2">
-              <input
-                type="password"
-                value={apiKeyValue}
-                onChange={(e) => setApiKeyValue(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSaveApiKey()}
-                placeholder="Google Drive API key"
-                className="h-9 flex-1 rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
-              />
-              <Button size="sm" onClick={handleSaveApiKey} disabled={!apiKeyValue.trim()}>
-                Save
-              </Button>
-              {getApiKey() && (
-                <Button size="sm" variant="ghost" onClick={() => setShowApiKeyInput(false)}>
-                  <X className="size-3" />
-                </Button>
-              )}
-            </div>
-          )}
 
           {driveError && (
             <p className="mt-2 text-sm text-destructive">{driveError}</p>

@@ -1,11 +1,11 @@
 import { Page } from "react-pdf"
 import type { IPdfPageProps } from "@/Interface/IPdfPage"
 
-export function PdfPage({ pageNumber, width }: IPdfPageProps) {
+export function PdfPage({ pageNumber, scale }: IPdfPageProps) {
   return (
     <Page
       pageNumber={pageNumber}
-      width={width}
+      scale={scale}
       renderTextLayer={true}
       renderAnnotationLayer={true}
     />

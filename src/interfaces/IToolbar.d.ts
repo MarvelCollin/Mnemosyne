@@ -12,4 +12,6 @@ export interface IToolbarProps {
   currentPage: number
   totalPages: number
   onPageChange: (page: number) => void
+  translationLabel: string
+  onTranslateSettings: () => void
 }

@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react"
+import { useRef, useState, useCallback, useEffect } from "react"
 import { pdfjs } from "react-pdf"
 import { PdfUploader } from "@/components/pdf/PdfUploader"
 import { PdfViewer } from "@/components/pdf/PdfViewer"
@@ -12,6 +12,10 @@ import { useZoom } from "@/hooks/useZoom"
 import { useReadingProgress } from "@/hooks/useReadingProgress"
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { useReadingPosition } from "@/hooks/useReadingPosition"
+import { useTranslation } from "@/hooks/useTranslation"
+import { TranslationPopup } from "@/components/pdf/TranslationPopup"
+import { TranslationSettings } from "@/components/pdf/TranslationSettings"
+import { persistDocument, loadPersistedDocument, clearPersistedDocument } from "@/lib/storage"
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
 
@@ -24,6 +28,16 @@ function App() {
   const progress = useReadingProgress(viewerRef)
   const [goToPage, setGoToPage] = useState<number | null>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [showTranslationSettings, setShowTranslationSettings] = useState(false)
+  const {
+    settings: translationSettings,
+    updateSettings: updateTranslationSettings,
+    popup: translationPopup,
+    saveToDict,
+    dictionary,
+    deleteDictEntry,
+    clearDictionary,
+  } = useTranslation(viewerRef)
   const { restore } = useReadingPosition(
     document?.file ?? null,
     viewerRef,
@@ -36,8 +50,15 @@ function App() {
     onToggleHelp: () => setShowShortcuts((prev) => !prev),
   })
 
+  useEffect(() => {
+    loadPersistedDocument().then((file) => {
+      if (file) loadFile(file, 0)
+    })
+  }, [])
+
   const handleFileSelect = (file: File) => {
     loadFile(file, 0)
+    persistDocument(file)
   }
 
   const handleDocumentLoaded = (totalPages: number) => {
@@ -70,12 +91,14 @@ function App() {
         fileName={document.name}
         theme={theme}
         onThemeChange={setTheme}
-        onClose={clearDocument}
+        onClose={() => { clearDocument(); clearPersistedDocument() }}
         autoScrollControls={autoScrollControls}
         zoomControls={zoomControls}
         currentPage={document.currentPage}
         totalPages={document.totalPages}
         onPageChange={handlePageChangeFromNav}
+        translationLabel={`${translationSettings.sourceLanguage.toUpperCase()}→${translationSettings.targetLanguage.toUpperCase()}`}
+        onTranslateSettings={() => setShowTranslationSettings((prev) => !prev)}
       />
       <ProgressBar progress={progress} />
       <PdfViewer
@@ -91,6 +114,16 @@ function App() {
         isOpen={showShortcuts}
         onClose={() => setShowShortcuts(false)}
       />
+      <TranslationSettings
+        settings={translationSettings}
+        onUpdate={updateTranslationSettings}
+        isOpen={showTranslationSettings}
+        onClose={() => setShowTranslationSettings(false)}
+        dictionary={dictionary}
+        onDeleteEntry={deleteDictEntry}
+        onClearDictionary={clearDictionary}
+      />
+      {translationPopup && <TranslationPopup state={translationPopup} onSave={saveToDict} />}
     </div>
   )
 }

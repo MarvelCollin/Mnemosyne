@@ -1,5 +1,3 @@
-import { X } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "./ThemeToggle"
 import { AutoScrollControls } from "@/components/pdf/AutoScrollControls"
 import { ZoomControls } from "@/components/pdf/ZoomControls"
@@ -16,32 +14,44 @@ export function Toolbar({
   currentPage,
   totalPages,
   onPageChange,
+  translationLabel,
+  onTranslateSettings,
 }: IToolbarProps) {
   return (
-    <div className="flex h-12 shrink-0 items-center justify-between border-b px-4">
-      <div className="flex items-center gap-3">
-        <span className="max-w-[200px] truncate text-sm font-medium">{fileName}</span>
-        {totalPages > 0 && (
-          <>
-            <div className="mx-1 h-5 w-px bg-border" />
-            <PageNavigation
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-            />
-          </>
-        )}
+    <div className="flex h-11 shrink-0 items-center gap-1.5 px-2 shadow-sm sm:h-12 sm:justify-between sm:gap-0 sm:px-4">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <button
+          onClick={onClose}
+          className="flex size-6 items-center justify-center rounded-sm text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          title="Close"
+        >
+          ×
+        </button>
+        <span className="hidden max-w-[200px] truncate text-sm font-medium sm:block">{fileName}</span>
       </div>
-      <div className="flex items-center gap-2">
+
+      {totalPages > 0 && (
+        <PageNavigation
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
+      )}
+
+      <div className="ml-auto flex items-center gap-1 sm:ml-0 sm:gap-2">
         <AutoScrollControls controls={autoScrollControls} />
-        <div className="mx-1 h-5 w-px bg-border" />
+        <div className="hidden h-4 w-px bg-border/40 sm:block" />
         <ZoomControls controls={zoomControls} />
-        <div className="mx-1 h-5 w-px bg-border" />
+        <div className="hidden h-4 w-px bg-border/40 sm:block" />
+        <button
+          onClick={onTranslateSettings}
+          className="rounded-sm px-1.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:px-2"
+          title="Translation settings"
+        >
+          {translationLabel}
+        </button>
+        <div className="hidden h-4 w-px bg-border/40 sm:block" />
         <ThemeToggle theme={theme} onThemeChange={onThemeChange} />
-        <div className="mx-1 h-5 w-px bg-border" />
-        <Button variant="ghost" size="icon-sm" onClick={onClose} title="Close">
-          <X className="size-4" />
-        </Button>
       </div>
     </div>
   )

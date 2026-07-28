@@ -3,23 +3,30 @@ import type { IAutoScroll, IAutoScrollControls } from "@/interfaces/IAutoScroll"
 
 const MIN_SPEED = 1
 const MAX_SPEED = 10
-const BASE_PX_PER_FRAME = 0.3
+const BASE_PX_PER_FRAME = 0.15
 
 export function useAutoScroll(containerRef: React.RefObject<HTMLElement | null>): IAutoScrollControls {
   const [autoScroll, setAutoScroll] = useState<IAutoScroll>({
     isActive: false,
-    speed: 2,
+    speed: 1,
   })
   const animationRef = useRef<number>(0)
+  const accumulatorRef = useRef(0)
 
   const scroll = useCallback(() => {
     if (!containerRef.current) return
-    containerRef.current.scrollTop += autoScroll.speed * BASE_PX_PER_FRAME
+    accumulatorRef.current += autoScroll.speed * BASE_PX_PER_FRAME
+    if (accumulatorRef.current >= 1) {
+      const px = Math.floor(accumulatorRef.current)
+      containerRef.current.scrollTop += px
+      accumulatorRef.current -= px
+    }
     animationRef.current = requestAnimationFrame(scroll)
   }, [autoScroll.speed, containerRef])
 
   useEffect(() => {
     if (autoScroll.isActive) {
+      accumulatorRef.current = 0
       animationRef.current = requestAnimationFrame(scroll)
     } else {
       cancelAnimationFrame(animationRef.current)

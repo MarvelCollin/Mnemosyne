@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react"
-import { ChevronUp, ChevronDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import type { IPageNavigationProps } from "@/interfaces/IPageNavigation"
 
 export function PageNavigation({ currentPage, totalPages, onPageChange }: IPageNavigationProps) {
@@ -12,14 +10,6 @@ export function PageNavigation({ currentPage, totalPages, onPageChange }: IPageN
       setInputValue(String(currentPage))
     }
   }, [currentPage, isEditing])
-
-  const goToPrev = () => {
-    if (currentPage > 1) onPageChange(currentPage - 1)
-  }
-
-  const goToNext = () => {
-    if (currentPage < totalPages) onPageChange(currentPage + 1)
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,24 +28,17 @@ export function PageNavigation({ currentPage, totalPages, onPageChange }: IPageN
   }
 
   return (
-    <div className="flex items-center gap-1">
-      <Button variant="ghost" size="icon-sm" onClick={goToPrev} disabled={currentPage <= 1}>
-        <ChevronUp className="size-4" />
-      </Button>
-      <form onSubmit={handleSubmit} className="flex items-center gap-1">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onFocus={() => setIsEditing(true)}
-          onBlur={handleBlur}
-          className="h-6 w-10 rounded border bg-transparent text-center text-xs"
-        />
-        <span className="text-xs text-muted-foreground">/ {totalPages}</span>
-      </form>
-      <Button variant="ghost" size="icon-sm" onClick={goToNext} disabled={currentPage >= totalPages}>
-        <ChevronDown className="size-4" />
-      </Button>
-    </div>
+    <form onSubmit={handleSubmit} className="flex items-center gap-1 text-sm tabular-nums">
+      <input
+        type="text"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onFocus={() => setIsEditing(true)}
+        onBlur={handleBlur}
+        className="h-6 w-8 rounded-sm bg-transparent text-center text-sm transition-colors focus:bg-muted focus:outline-none"
+      />
+      <span className="text-muted-foreground">/</span>
+      <span className="text-muted-foreground">{totalPages}</span>
+    </form>
   )
 }

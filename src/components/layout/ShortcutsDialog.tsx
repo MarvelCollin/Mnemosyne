@@ -14,17 +14,22 @@ export function ShortcutsDialog({ isOpen, onClose }: IKeyboardShortcutsProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs"
+      style={{ animation: "fade-in 0.15s ease-out" }}
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-lg"
+        className="mx-4 w-full max-w-sm rounded-lg border bg-background p-4 shadow-xl sm:mx-0 sm:p-6"
+        style={{ animation: "dialog-enter 0.15s ease-out" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="mb-4 text-lg font-semibold">Keyboard Shortcuts</h3>
-        <div className="space-y-3">
+        <h3 className="mb-4 text-base font-semibold tracking-tight">Keyboard Shortcuts</h3>
+        <div className="space-y-2.5">
           {shortcuts.map((shortcut) => (
             <div key={shortcut.key} className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{shortcut.description}</span>
-              <kbd className="rounded border bg-muted px-2 py-1 text-xs font-mono">
+              <kbd className="rounded-sm border bg-muted/50 px-2 py-0.5 text-xs font-mono text-muted-foreground">
                 {shortcut.label}
               </kbd>
             </div>

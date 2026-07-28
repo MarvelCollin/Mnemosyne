@@ -98,11 +98,9 @@ export function useTranslation(containerRef: React.RefObject<HTMLDivElement | nu
   }, [])
 
   useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-
     const handleMouseUp = (e: MouseEvent) => {
-      if (e.button !== 0) return
+      const container = containerRef.current
+      if (!container || e.button !== 0) return
       setTimeout(() => {
         const selection = window.getSelection()
         const text = selection?.toString()
@@ -116,8 +114,8 @@ export function useTranslation(containerRef: React.RefObject<HTMLDivElement | nu
       }, 10)
     }
 
-    container.addEventListener("mouseup", handleMouseUp)
-    return () => container.removeEventListener("mouseup", handleMouseUp)
+    document.addEventListener("mouseup", handleMouseUp)
+    return () => document.removeEventListener("mouseup", handleMouseUp)
   }, [containerRef, translate])
 
   useEffect(() => {

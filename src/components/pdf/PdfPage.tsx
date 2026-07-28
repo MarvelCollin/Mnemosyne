@@ -1,7 +1,8 @@
+import { memo } from "react"
 import { Page } from "react-pdf"
 import type { IPdfPageProps } from "@/interfaces/IPdfPage"
 
-export function PdfPage({ pageNumber, scale, onRenderSuccess }: IPdfPageProps) {
+export const PdfPage = memo(function PdfPage({ pageNumber, scale, onRenderSuccess }: IPdfPageProps) {
   return (
     <Page
       pageNumber={pageNumber}
@@ -11,4 +12,4 @@ export function PdfPage({ pageNumber, scale, onRenderSuccess }: IPdfPageProps) {
       onRenderSuccess={onRenderSuccess}
     />
   )
-}
+})

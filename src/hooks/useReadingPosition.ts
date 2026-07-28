@@ -8,22 +8,23 @@ function getFileKey(file: File): string {
   return `${file.name}_${file.size}`
 }
 
-function loadPositions(): Record<string, IReadingPosition> {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) return {}
-  return JSON.parse(raw)
-}
-
-function savePositions(positions: Record<string, IReadingPosition>) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(positions))
-}
-
 export function useReadingPosition(
   file: File | null,
   containerRef: React.RefObject<HTMLElement | null>,
   currentPage: number
 ) {
   const lastSaveRef = useRef(0)
+  const currentPageRef = useRef(currentPage)
+  currentPageRef.current = currentPage
+  const positionsRef = useRef<Record<string, IReadingPosition> | null>(null)
+
+  const getPositions = useCallback(() => {
+    if (!positionsRef.current) {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      positionsRef.current = raw ? JSON.parse(raw) : {}
+    }
+    return positionsRef.current!
+  }, [])
 
   const save = useCallback(() => {
     if (!file || !containerRef.current) return
@@ -32,15 +33,16 @@ export function useReadingPosition(
     lastSaveRef.current = now
 
     const key = getFileKey(file)
-    const positions = loadPositions()
+    const positions = getPositions()
     positions[key] = {
       fileKey: key,
       scrollTop: containerRef.current.scrollTop,
-      currentPage,
+      currentPage: currentPageRef.current,
       timestamp: now,
     }
-    savePositions(positions)
-  }, [file, containerRef, currentPage])
+    positionsRef.current = positions
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(positions))
+  }, [file, containerRef, getPositions])
 
   useEffect(() => {
     const container = containerRef.current
@@ -52,13 +54,13 @@ export function useReadingPosition(
   const restore = useCallback(() => {
     if (!file || !containerRef.current) return false
     const key = getFileKey(file)
-    const positions = loadPositions()
+    const positions = getPositions()
     const position = positions[key]
     if (!position) return false
 
     containerRef.current.scrollTop = position.scrollTop
     return true
-  }, [file, containerRef])
+  }, [file, containerRef, getPositions])
 
   return { restore }
 }

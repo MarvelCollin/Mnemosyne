@@ -152,3 +152,19 @@
     margin: 0;
   }
 }
+
+.dark .react-pdf__Page canvas {
+  filter: invert(0.85) hue-rotate(180deg);
+}
+
+.dark .react-pdf__Page .react-pdf__Page__textContent {
+  filter: invert(0.85) hue-rotate(180deg);
+}
+
+.sepia .react-pdf__Page canvas {
+  filter: sepia(0.4) brightness(0.95);
+}
+
+.sepia .react-pdf__Page .react-pdf__Page__textContent {
+  filter: sepia(0.4) brightness(0.95);
+}

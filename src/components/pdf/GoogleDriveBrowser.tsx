@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { Folder, FileText, File, ChevronRight, Loader2, ArrowLeft } from "lucide-react"
+import { Folder, FileText, File as FileIcon, ChevronRight, Loader2, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { listFolder, downloadFile, getFolderName, type GDriveItem } from "@/lib/googleDrive"
 
@@ -80,7 +80,7 @@ export function GoogleDriveBrowser({ folderId, apiKey, onFileSelect, onBack }: G
   const getIcon = (item: GDriveItem) => {
     if (isFolder(item)) return <Folder className="size-5 text-blue-500" />
     if (isPdf(item)) return <FileText className="size-5 text-red-500" />
-    return <File className="size-5 text-muted-foreground" />
+    return <FileIcon className="size-5 text-muted-foreground" />
   }
 
   const formatSize = (bytes?: string) => {

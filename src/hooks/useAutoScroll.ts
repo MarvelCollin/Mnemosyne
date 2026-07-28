@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import type { IAutoScroll, IAutoScrollControls } from "@/Interface/IAutoScroll"
+import type { IAutoScroll, IAutoScrollControls } from "@/interfaces/IAutoScroll"
 
 const MIN_SPEED = 1
 const MAX_SPEED = 10

@@ -4,7 +4,7 @@ import { ThemeToggle } from "./ThemeToggle"
 import { AutoScrollControls } from "@/components/pdf/AutoScrollControls"
 import { ZoomControls } from "@/components/pdf/ZoomControls"
 import { PageNavigation } from "@/components/pdf/PageNavigation"
-import type { IToolbarProps } from "@/Interface/IToolbar"
+import type { IToolbarProps } from "@/interfaces/IToolbar"
 
 export function Toolbar({
   fileName,

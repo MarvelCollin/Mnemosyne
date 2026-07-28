@@ -3,10 +3,12 @@ import { pdfjs } from "react-pdf"
 import { PdfUploader } from "@/components/pdf/PdfUploader"
 import { PdfViewer } from "@/components/pdf/PdfViewer"
 import { Toolbar } from "@/components/layout/Toolbar"
+import { ProgressBar } from "@/components/layout/ProgressBar"
 import { useDocument } from "@/hooks/useDocument"
 import { useTheme } from "@/hooks/useTheme"
 import { useAutoScroll } from "@/hooks/useAutoScroll"
 import { useZoom } from "@/hooks/useZoom"
+import { useReadingProgress } from "@/hooks/useReadingProgress"
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
 
@@ -16,6 +18,7 @@ function App() {
   const viewerRef = useRef<HTMLDivElement>(null)
   const autoScrollControls = useAutoScroll(viewerRef)
   const zoomControls = useZoom()
+  const progress = useReadingProgress(viewerRef)
   const [goToPage, setGoToPage] = useState<number | null>(null)
 
   const handleFileSelect = (file: File) => {
@@ -55,6 +58,7 @@ function App() {
         totalPages={document.totalPages}
         onPageChange={handlePageChangeFromNav}
       />
+      <ProgressBar progress={progress} />
       <PdfViewer
         file={document.file}
         zoom={zoomControls.zoom}

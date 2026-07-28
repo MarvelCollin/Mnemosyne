@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Document } from "react-pdf"
 import { PdfPage } from "./PdfPage"
-import type { IPdfViewerProps } from "@/Interface/IPdfViewer"
+import type { IPdfViewerProps } from "@/interfaces/IPdfViewer"
 
 import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"

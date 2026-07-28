@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import type { ThemeMode } from "@/Interface/ITheme"
+import type { ThemeMode } from "@/interfaces/ITheme"
 
 const STORAGE_KEY = "mnemosyne-theme"
 

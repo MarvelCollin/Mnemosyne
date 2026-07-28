@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react"
 import { Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { IPdfUploaderProps } from "@/Interface/IPdfUploader"
+import type { IPdfUploaderProps } from "@/interfaces/IPdfUploader"
 
 export function PdfUploader({ onFileSelect }: IPdfUploaderProps) {
   const [isDragging, setIsDragging] = useState(false)

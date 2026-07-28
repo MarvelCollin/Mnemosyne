@@ -1,5 +1,5 @@
 import { useState } from "react"
-import type { IZoom, IZoomControls, ZoomMode } from "@/Interface/IZoom"
+import type { IZoom, IZoomControls, ZoomMode } from "@/interfaces/IZoom"
 
 const MIN_SCALE = 0.25
 const MAX_SCALE = 3

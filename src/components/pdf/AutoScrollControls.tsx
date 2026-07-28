@@ -1,6 +1,6 @@
 import { Play, Pause, Minus, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { IAutoScrollControls } from "@/Interface/IAutoScroll"
+import type { IAutoScrollControls } from "@/interfaces/IAutoScroll"
 
 interface AutoScrollControlsProps {
   controls: IAutoScrollControls

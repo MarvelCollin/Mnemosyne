@@ -1,5 +1,5 @@
 import { Page } from "react-pdf"
-import type { IPdfPageProps } from "@/Interface/IPdfPage"
+import type { IPdfPageProps } from "@/interfaces/IPdfPage"
 
 export function PdfPage({ pageNumber, scale }: IPdfPageProps) {
   return (

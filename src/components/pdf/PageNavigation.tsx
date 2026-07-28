@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { ChevronUp, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { IPageNavigationProps } from "@/Interface/IPageNavigation"
+import type { IPageNavigationProps } from "@/interfaces/IPageNavigation"
 
 export function PageNavigation({ currentPage, totalPages, onPageChange }: IPageNavigationProps) {
   const [inputValue, setInputValue] = useState(String(currentPage))

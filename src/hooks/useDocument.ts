@@ -1,5 +1,5 @@
 import { useState } from "react"
-import type { IDocument } from "@/Interface/IDocument"
+import type { IDocument } from "@/interfaces/IDocument"
 
 export function useDocument() {
   const [document, setDocument] = useState<IDocument | null>(null)

@@ -1,6 +1,6 @@
 import { Sun, Moon, Glasses } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { ThemeMode } from "@/Interface/ITheme"
+import type { ThemeMode } from "@/interfaces/ITheme"
 
 const themes: { mode: ThemeMode; icon: typeof Sun; label: string }[] = [
   { mode: "light", icon: Sun, label: "Light" },

@@ -1,6 +1,6 @@
 import { ZoomIn, ZoomOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { IZoomControls } from "@/Interface/IZoom"
+import type { IZoomControls } from "@/interfaces/IZoom"
 
 interface ZoomControlsProps {
   controls: IZoomControls

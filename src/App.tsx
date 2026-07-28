@@ -4,11 +4,13 @@ import { PdfUploader } from "@/components/pdf/PdfUploader"
 import { PdfViewer } from "@/components/pdf/PdfViewer"
 import { Toolbar } from "@/components/layout/Toolbar"
 import { ProgressBar } from "@/components/layout/ProgressBar"
+import { ShortcutsDialog } from "@/components/layout/ShortcutsDialog"
 import { useDocument } from "@/hooks/useDocument"
 import { useTheme } from "@/hooks/useTheme"
 import { useAutoScroll } from "@/hooks/useAutoScroll"
 import { useZoom } from "@/hooks/useZoom"
 import { useReadingProgress } from "@/hooks/useReadingProgress"
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts"
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
 
@@ -20,6 +22,13 @@ function App() {
   const zoomControls = useZoom()
   const progress = useReadingProgress(viewerRef)
   const [goToPage, setGoToPage] = useState<number | null>(null)
+  const [showShortcuts, setShowShortcuts] = useState(false)
+
+  useKeyboardShortcuts({
+    autoScroll: autoScrollControls,
+    zoom: zoomControls,
+    onToggleHelp: () => setShowShortcuts((prev) => !prev),
+  })
 
   const handleFileSelect = (file: File) => {
     loadFile(file, 0)
@@ -66,6 +75,10 @@ function App() {
         onPageChange={handlePageChangeFromScroll}
         containerRef={viewerRef}
         goToPage={goToPage}
+      />
+      <ShortcutsDialog
+        isOpen={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
       />
     </div>
   )

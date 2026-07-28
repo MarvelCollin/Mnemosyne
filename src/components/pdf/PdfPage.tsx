@@ -22,8 +22,8 @@ function multiplyMatrices(a: number[], b: number[]): number[] {
 
 const IMAGE_OPS = new Set([
   pdfjs.OPS.paintImageXObject,
-  pdfjs.OPS.paintJpegXObject,
   pdfjs.OPS.paintImageXObjectRepeat,
+  pdfjs.OPS.paintXObject,
 ])
 
 async function getImageRegions(

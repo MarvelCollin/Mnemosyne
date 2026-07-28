@@ -13,7 +13,7 @@ export function useTheme() {
 
   useEffect(() => {
     const root = document.documentElement
-    root.classList.remove("light", "dark", "sepia")
+    root.classList.remove("light", "dark")
     root.classList.add(theme)
     localStorage.setItem(STORAGE_KEY, theme)
   }, [theme])

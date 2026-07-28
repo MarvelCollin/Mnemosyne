@@ -1,4 +1,4 @@
-export type ThemeMode = "light" | "dark" | "sepia"
+export type ThemeMode = "light" | "dark"
 
 export interface IThemeContext {
   theme: ThemeMode

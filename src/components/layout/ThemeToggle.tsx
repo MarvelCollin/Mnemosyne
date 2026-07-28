@@ -3,7 +3,6 @@ import type { ThemeMode } from "@/interfaces/ITheme"
 const themes: { mode: ThemeMode; label: string; short: string }[] = [
   { mode: "light", label: "Light", short: "L" },
   { mode: "dark", label: "Dark", short: "D" },
-  { mode: "sepia", label: "Sepia", short: "S" },
 ]
 
 interface ThemeToggleProps {

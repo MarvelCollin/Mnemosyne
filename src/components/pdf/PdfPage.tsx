@@ -79,16 +79,19 @@ export const PdfPage = memo(function PdfPage({
   const overlayRefs = useRef<Map<number, HTMLCanvasElement>>(new Map())
   const canvasRendered = useRef(false)
 
+  const retryTimers = useRef<number[]>([])
+
   const copyPixels = useCallback(() => {
-    if (!wrapperRef.current || overlays.length === 0) return
+    if (!wrapperRef.current || overlays.length === 0) return false
     const mainCanvas = wrapperRef.current.querySelector<HTMLCanvasElement>(
       ".react-pdf__Page canvas"
     )
-    if (!mainCanvas || mainCanvas.width === 0) return
+    if (!mainCanvas || mainCanvas.width === 0) return false
     const mainCtx = mainCanvas.getContext("2d", { willReadFrequently: true })
-    if (!mainCtx) return
+    if (!mainCtx) return false
     const dpr = window.devicePixelRatio || 1
 
+    let hasData = false
     overlays.forEach((region, i) => {
       const oc = overlayRefs.current.get(i)
       if (!oc) return
@@ -99,27 +102,48 @@ export const PdfPage = memo(function PdfPage({
       const ctx = oc.getContext("2d")
       if (!ctx) return
       try {
-        ctx.putImageData(
-          mainCtx.getImageData(
-            Math.round(region.x * dpr),
-            Math.round(region.y * dpr),
-            sw,
-            sh
-          ),
-          0,
-          0
+        const imgData = mainCtx.getImageData(
+          Math.round(region.x * dpr),
+          Math.round(region.y * dpr),
+          sw,
+          sh
         )
+        const nonZero = imgData.data.some((v) => v !== 0)
+        if (nonZero) {
+          ctx.putImageData(imgData, 0, 0)
+          hasData = true
+        }
       } catch {
         /* tainted canvas */
       }
     })
+    return hasData
   }, [overlays])
+
+  const scheduleCopy = useCallback(() => {
+    retryTimers.current.forEach(clearTimeout)
+    retryTimers.current = []
+    const attempt = () => {
+      requestAnimationFrame(() => {
+        if (!copyPixels()) {
+          const t = window.setTimeout(() => requestAnimationFrame(() => {
+            if (!copyPixels()) {
+              const t2 = window.setTimeout(() => requestAnimationFrame(copyPixels), 300)
+              retryTimers.current.push(t2)
+            }
+          }), 100)
+          retryTimers.current.push(t)
+        }
+      })
+    }
+    attempt()
+  }, [copyPixels])
 
   const handleRenderSuccess = useCallback(() => {
     canvasRendered.current = true
     onRenderSuccess?.()
-    if (overlays.length > 0) requestAnimationFrame(copyPixels)
-  }, [onRenderSuccess, overlays, copyPixels])
+    if (overlays.length > 0) scheduleCopy()
+  }, [onRenderSuccess, overlays, scheduleCopy])
 
   useEffect(() => {
     if (theme !== "dark" || !pdfDoc) {
@@ -137,9 +161,13 @@ export const PdfPage = memo(function PdfPage({
 
   useEffect(() => {
     if (overlays.length > 0 && canvasRendered.current) {
-      requestAnimationFrame(copyPixels)
+      scheduleCopy()
     }
-  }, [overlays, copyPixels])
+  }, [overlays, scheduleCopy])
+
+  useEffect(() => {
+    return () => retryTimers.current.forEach(clearTimeout)
+  }, [])
 
   const setOverlayRef = useCallback(
     (index: number) => (el: HTMLCanvasElement | null) => {

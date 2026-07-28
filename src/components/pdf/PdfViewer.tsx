@@ -6,14 +6,29 @@ import type { IPdfViewerProps } from "@/interfaces/IPdfViewer"
 import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"
 
-export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containerRef, goToPage }: IPdfViewerProps) {
+export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containerRef, goToPage, onReady }: IPdfViewerProps) {
   const [totalPages, setTotalPages] = useState(0)
+  const [renderedPages, setRenderedPages] = useState(0)
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map())
+  const readyCalled = useRef(false)
 
   const onLoadSuccess = ({ numPages }: { numPages: number }) => {
     setTotalPages(numPages)
+    setRenderedPages(0)
+    readyCalled.current = false
     onDocumentLoaded(numPages)
   }
+
+  const onPageRendered = useCallback(() => {
+    setRenderedPages((prev) => {
+      const next = prev + 1
+      if (next >= totalPages && !readyCalled.current) {
+        readyCalled.current = true
+        setTimeout(onReady, 50)
+      }
+      return next
+    })
+  }, [totalPages, onReady])
 
   const handleScroll = useCallback(() => {
     if (!containerRef.current || totalPages === 0) return
@@ -66,7 +81,7 @@ export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containe
       >
         {Array.from({ length: totalPages }, (_, i) => (
           <div key={i + 1} ref={setPageRef(i + 1)}>
-            <PdfPage pageNumber={i + 1} scale={zoom.scale} />
+            <PdfPage pageNumber={i + 1} scale={zoom.scale} onRenderSuccess={onPageRendered} />
           </div>
         ))}
       </Document>

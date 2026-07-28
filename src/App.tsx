@@ -11,6 +11,7 @@ import { useAutoScroll } from "@/hooks/useAutoScroll"
 import { useZoom } from "@/hooks/useZoom"
 import { useReadingProgress } from "@/hooks/useReadingProgress"
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts"
+import { useReadingPosition } from "@/hooks/useReadingPosition"
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
 
@@ -23,6 +24,11 @@ function App() {
   const progress = useReadingProgress(viewerRef)
   const [goToPage, setGoToPage] = useState<number | null>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const { restore } = useReadingPosition(
+    document?.file ?? null,
+    viewerRef,
+    document?.currentPage ?? 1
+  )
 
   useKeyboardShortcuts({
     autoScroll: autoScrollControls,
@@ -39,6 +45,10 @@ function App() {
       loadFile(document.file, totalPages)
     }
   }
+
+  const handleViewerReady = useCallback(() => {
+    restore()
+  }, [restore])
 
   const handlePageChangeFromScroll = useCallback((page: number) => {
     setCurrentPage(page)
@@ -75,6 +85,7 @@ function App() {
         onPageChange={handlePageChangeFromScroll}
         containerRef={viewerRef}
         goToPage={goToPage}
+        onReady={handleViewerReady}
       />
       <ShortcutsDialog
         isOpen={showShortcuts}

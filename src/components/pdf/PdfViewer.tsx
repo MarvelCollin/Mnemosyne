@@ -16,12 +16,15 @@ export function PdfViewer({ file, zoom, theme, onDocumentLoaded, onPageChange, c
   const onReadyRef = useRef(onReady)
   onReadyRef.current = onReady
 
-  const onLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setTotalPages(numPages)
-    totalPagesRef.current = numPages
+  const [pdfDoc, setPdfDoc] = useState<any>(null)
+
+  const onLoadSuccess = (pdf: any) => {
+    setPdfDoc(pdf)
+    setTotalPages(pdf.numPages)
+    totalPagesRef.current = pdf.numPages
     renderedCount.current = 0
     readyCalled.current = false
-    onDocumentLoaded(numPages)
+    onDocumentLoaded(pdf.numPages)
   }
 
   const onPageRendered = useCallback(() => {
@@ -91,7 +94,7 @@ export function PdfViewer({ file, zoom, theme, onDocumentLoaded, onPageChange, c
       >
         {Array.from({ length: totalPages }, (_, i) => (
           <div key={i + 1} ref={setPageRef(i + 1)} className="pdf-page-wrapper overflow-hidden rounded-lg shadow">
-            <PdfPage pageNumber={i + 1} scale={zoom.scale} theme={theme} onRenderSuccess={onPageRendered} />
+            <PdfPage pageNumber={i + 1} scale={zoom.scale} theme={theme} pdfDoc={pdfDoc} onRenderSuccess={onPageRendered} />
           </div>
         ))}
       </Document>

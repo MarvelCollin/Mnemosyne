@@ -1,104 +1,176 @@
-import { memo, useRef, useCallback } from "react"
-import { Page } from "react-pdf"
+import { memo, useRef, useCallback, useState, useEffect } from "react"
+import { Page, pdfjs } from "react-pdf"
 import type { IPdfPageProps } from "@/interfaces/IPdfPage"
 
-function hue2rgb(p: number, q: number, t: number): number {
-  if (t < 0) t += 1
-  if (t > 1) t -= 1
-  if (t < 1 / 6) return p + (q - p) * 6 * t
-  if (t < 1 / 2) return q
-  if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
-  return p
+interface ImageRegion {
+  x: number
+  y: number
+  width: number
+  height: number
 }
 
-function invertCanvasLightness(canvas: HTMLCanvasElement) {
-  const ctx = canvas.getContext("2d", { willReadFrequently: true })
-  if (!ctx) return
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-  const d = imageData.data
+function multiplyMatrices(a: number[], b: number[]): number[] {
+  return [
+    a[0] * b[0] + a[2] * b[1],
+    a[1] * b[0] + a[3] * b[1],
+    a[0] * b[2] + a[2] * b[3],
+    a[1] * b[2] + a[3] * b[3],
+    a[0] * b[4] + a[2] * b[5] + a[4],
+    a[1] * b[4] + a[3] * b[5] + a[5],
+  ]
+}
 
-  for (let i = 0; i < d.length; i += 4) {
-    const r = d[i] / 255
-    const g = d[i + 1] / 255
-    const b = d[i + 2] / 255
+const IMAGE_OPS = new Set([
+  pdfjs.OPS.paintImageXObject,
+  pdfjs.OPS.paintJpegXObject,
+  pdfjs.OPS.paintImageXObjectRepeat,
+])
 
-    const max = Math.max(r, g, b)
-    const min = Math.min(r, g, b)
-    let h = 0
-    let s = 0
-    let l = (max + min) / 2
+async function getImageRegions(
+  pdfDoc: any,
+  pageNumber: number,
+  scale: number
+): Promise<ImageRegion[]> {
+  const page = await pdfDoc.getPage(pageNumber)
+  const viewport = page.getViewport({ scale })
+  const ops = await page.getOperatorList()
 
-    if (max !== min) {
-      const diff = max - min
-      s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min)
-      if (max === r) h = ((g - b) / diff + (g < b ? 6 : 0)) / 6
-      else if (max === g) h = ((b - r) / diff + 2) / 6
-      else h = ((r - g) / diff + 4) / 6
-    }
+  const regions: ImageRegion[] = []
+  const stack: number[][] = []
+  let ctm = [...viewport.transform]
 
-    l = 0.12 + (1 - l) * 0.76
-
-    if (s === 0) {
-      const v = Math.round(l * 255)
-      d[i] = v
-      d[i + 1] = v
-      d[i + 2] = v
-    } else {
-      const q2 = l < 0.5 ? l * (1 + s) : l + s - l * s
-      const p2 = 2 * l - q2
-      d[i] = Math.round(hue2rgb(p2, q2, h + 1 / 3) * 255)
-      d[i + 1] = Math.round(hue2rgb(p2, q2, h) * 255)
-      d[i + 2] = Math.round(hue2rgb(p2, q2, h - 1 / 3) * 255)
+  for (let i = 0; i < ops.fnArray.length; i++) {
+    const fn = ops.fnArray[i]
+    if (fn === pdfjs.OPS.save) {
+      stack.push([...ctm])
+    } else if (fn === pdfjs.OPS.restore) {
+      ctm = stack.pop() || [...viewport.transform]
+    } else if (fn === pdfjs.OPS.transform) {
+      ctm = multiplyMatrices(ctm, ops.argsArray[i] as number[])
+    } else if (IMAGE_OPS.has(fn)) {
+      const corners = [
+        [ctm[4], ctm[5]],
+        [ctm[0] + ctm[4], ctm[1] + ctm[5]],
+        [ctm[2] + ctm[4], ctm[3] + ctm[5]],
+        [ctm[0] + ctm[2] + ctm[4], ctm[1] + ctm[3] + ctm[5]],
+      ]
+      const xs = corners.map((c) => c[0])
+      const ys = corners.map((c) => c[1])
+      const x = Math.max(0, Math.min(...xs))
+      const y = Math.max(0, Math.min(...ys))
+      const w = Math.min(viewport.width, Math.max(...xs)) - x
+      const h = Math.min(viewport.height, Math.max(...ys)) - y
+      if (w > 10 && h > 10) regions.push({ x, y, width: w, height: h })
     }
   }
 
-  ctx.putImageData(imageData, 0, 0)
+  return regions
 }
 
-function applySepiaToCanvas(canvas: HTMLCanvasElement) {
-  const ctx = canvas.getContext("2d", { willReadFrequently: true })
-  if (!ctx) return
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-  const d = imageData.data
-  const amount = 0.4
-
-  for (let i = 0; i < d.length; i += 4) {
-    const r = d[i], g = d[i + 1], b = d[i + 2]
-    const sr = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189)
-    const sg = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168)
-    const sb = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131)
-    d[i] = Math.round(r + (sr - r) * amount)
-    d[i + 1] = Math.round(g + (sg - g) * amount)
-    d[i + 2] = Math.round(b + (sb - b) * amount)
-  }
-
-  ctx.putImageData(imageData, 0, 0)
-}
-
-export const PdfPage = memo(function PdfPage({ pageNumber, scale, theme, onRenderSuccess }: IPdfPageProps) {
+export const PdfPage = memo(function PdfPage({
+  pageNumber,
+  scale,
+  theme,
+  pdfDoc,
+  onRenderSuccess,
+}: IPdfPageProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const [overlays, setOverlays] = useState<ImageRegion[]>([])
+  const overlayRefs = useRef<Map<number, HTMLCanvasElement>>(new Map())
+  const canvasRendered = useRef(false)
+
+  const copyPixels = useCallback(() => {
+    if (!wrapperRef.current || overlays.length === 0) return
+    const mainCanvas = wrapperRef.current.querySelector<HTMLCanvasElement>(
+      ".react-pdf__Page canvas"
+    )
+    if (!mainCanvas || mainCanvas.width === 0) return
+    const mainCtx = mainCanvas.getContext("2d", { willReadFrequently: true })
+    if (!mainCtx) return
+    const dpr = window.devicePixelRatio || 1
+
+    overlays.forEach((region, i) => {
+      const oc = overlayRefs.current.get(i)
+      if (!oc) return
+      const sw = Math.round(region.width * dpr)
+      const sh = Math.round(region.height * dpr)
+      oc.width = sw
+      oc.height = sh
+      const ctx = oc.getContext("2d")
+      if (!ctx) return
+      try {
+        ctx.putImageData(
+          mainCtx.getImageData(
+            Math.round(region.x * dpr),
+            Math.round(region.y * dpr),
+            sw,
+            sh
+          ),
+          0,
+          0
+        )
+      } catch {
+        /* tainted canvas */
+      }
+    })
+  }, [overlays])
 
   const handleRenderSuccess = useCallback(() => {
-    if (wrapperRef.current) {
-      const canvas = wrapperRef.current.querySelector("canvas")
-      if (canvas) {
-        if (theme === "dark") invertCanvasLightness(canvas)
-        else if (theme === "sepia") applySepiaToCanvas(canvas)
-      }
-    }
+    canvasRendered.current = true
     onRenderSuccess?.()
-  }, [theme, onRenderSuccess])
+    if (overlays.length > 0) requestAnimationFrame(copyPixels)
+  }, [onRenderSuccess, overlays, copyPixels])
+
+  useEffect(() => {
+    if (theme !== "dark" || !pdfDoc) {
+      setOverlays([])
+      return
+    }
+    let cancelled = false
+    getImageRegions(pdfDoc, pageNumber, scale).then((regions) => {
+      if (!cancelled) setOverlays(regions)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [theme, pdfDoc, pageNumber, scale])
+
+  useEffect(() => {
+    if (overlays.length > 0 && canvasRendered.current) {
+      requestAnimationFrame(copyPixels)
+    }
+  }, [overlays, copyPixels])
+
+  const setOverlayRef = useCallback(
+    (index: number) => (el: HTMLCanvasElement | null) => {
+      if (el) overlayRefs.current.set(index, el)
+      else overlayRefs.current.delete(index)
+    },
+    []
+  )
 
   return (
-    <div ref={wrapperRef}>
+    <div ref={wrapperRef} className="relative">
       <Page
-        key={`${pageNumber}-${theme}`}
         pageNumber={pageNumber}
         scale={scale}
         renderTextLayer={true}
         renderAnnotationLayer={true}
         onRenderSuccess={handleRenderSuccess}
       />
+      {overlays.map((region, i) => (
+        <canvas
+          key={i}
+          ref={setOverlayRef(i)}
+          className="pointer-events-none absolute z-[1]"
+          style={{
+            left: `${region.x}px`,
+            top: `${region.y}px`,
+            width: `${region.width}px`,
+            height: `${region.height}px`,
+          }}
+        />
+      ))}
     </div>
   )
 })

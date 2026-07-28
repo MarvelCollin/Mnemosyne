@@ -6,7 +6,7 @@ import type { IPdfViewerProps } from "@/interfaces/IPdfViewer"
 import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"
 
-export function PdfViewer({ file, zoom, theme, onDocumentLoaded, onPageChange, containerRef, goToPage, onReady }: IPdfViewerProps) {
+export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containerRef, goToPage, onReady }: IPdfViewerProps) {
   const [totalPages, setTotalPages] = useState(0)
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map())
   const readyCalled = useRef(false)
@@ -94,7 +94,7 @@ export function PdfViewer({ file, zoom, theme, onDocumentLoaded, onPageChange, c
       >
         {Array.from({ length: totalPages }, (_, i) => (
           <div key={i + 1} ref={setPageRef(i + 1)} className="pdf-page-wrapper overflow-hidden rounded-lg shadow">
-            <PdfPage pageNumber={i + 1} scale={zoom.scale} theme={theme} pdfDoc={pdfDoc} onRenderSuccess={onPageRendered} />
+            <PdfPage pageNumber={i + 1} scale={zoom.scale} pdfDoc={pdfDoc} onRenderSuccess={onPageRendered} />
           </div>
         ))}
       </Document>

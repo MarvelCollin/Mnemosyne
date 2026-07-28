@@ -128,8 +128,24 @@
   filter: invert(0.85) hue-rotate(180deg);
 }
 
+.dark [data-has-images] .react-pdf__Page canvas {
+  filter: none;
+}
+
 .dark .react-pdf__Page .react-pdf__Page__textContent {
   filter: invert(0.85) hue-rotate(180deg);
+}
+
+.dark [data-has-images] .react-pdf__Page .react-pdf__Page__textContent {
+  filter: none;
+}
+
+.dark .react-pdf__Page .react-pdf__Page__annotations {
+  filter: invert(0.85) hue-rotate(180deg);
+}
+
+.dark [data-has-images] .react-pdf__Page .react-pdf__Page__annotations {
+  filter: none;
 }
 
 .pdf-page-wrapper {

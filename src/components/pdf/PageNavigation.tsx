@@ -1,10 +1,17 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronUp, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { IPageNavigationProps } from "@/interfaces/IPageNavigation"
 
 export function PageNavigation({ currentPage, totalPages, onPageChange }: IPageNavigationProps) {
   const [inputValue, setInputValue] = useState(String(currentPage))
+  const [isEditing, setIsEditing] = useState(false)
+
+  useEffect(() => {
+    if (!isEditing) {
+      setInputValue(String(currentPage))
+    }
+  }, [currentPage, isEditing])
 
   const goToPrev = () => {
     if (currentPage > 1) onPageChange(currentPage - 1)
@@ -22,10 +29,12 @@ export function PageNavigation({ currentPage, totalPages, onPageChange }: IPageN
     } else {
       setInputValue(String(currentPage))
     }
+    setIsEditing(false)
   }
 
   const handleBlur = () => {
     setInputValue(String(currentPage))
+    setIsEditing(false)
   }
 
   return (
@@ -38,6 +47,7 @@ export function PageNavigation({ currentPage, totalPages, onPageChange }: IPageN
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
+          onFocus={() => setIsEditing(true)}
           onBlur={handleBlur}
           className="h-6 w-10 rounded border bg-transparent text-center text-xs"
         />

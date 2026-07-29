@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import type { ITranslationSettings, ITranslationState, IDictionaryEntry } from "@/interfaces/ITranslation"
+import { raceTranslate, getCached } from "@/lib/translate"
 
 const SETTINGS_KEY = "mnemosyne-translation"
 const DICT_KEY = "mnemosyne-dictionary"
@@ -40,11 +41,18 @@ export function useTranslation(containerRef: React.RefObject<HTMLDivElement | nu
     if (!trimmed) return
 
     const { sourceLanguage, targetLanguage } = settingsRef.current
-    const cached = dictionaryRef.current.find(
+
+    const dictEntry = dictionaryRef.current.find(
       (e) => e.source === trimmed && e.targetLanguage === targetLanguage
     )
-    if (cached) {
-      setPopup({ text: trimmed, translation: cached.translation, isLoading: false, position: { x, y }, alreadySaved: true })
+    if (dictEntry) {
+      setPopup({ text: trimmed, translation: dictEntry.translation, isLoading: false, position: { x, y }, alreadySaved: true })
+      return
+    }
+
+    const sessionHit = getCached(trimmed, sourceLanguage, targetLanguage)
+    if (sessionHit) {
+      setPopup({ text: trimmed, translation: sessionHit, isLoading: false, position: { x, y }, alreadySaved: false })
       return
     }
 
@@ -55,15 +63,10 @@ export function useTranslation(containerRef: React.RefObject<HTMLDivElement | nu
     setPopup({ text: trimmed, translation: null, isLoading: true, position: { x, y }, alreadySaved: false })
 
     try {
-      const encoded = encodeURIComponent(trimmed)
-      const res = await fetch(
-        `https://api.mymemory.translated.net/get?q=${encoded}&langpair=${sourceLanguage}|${targetLanguage}`,
-        { signal: controller.signal }
-      )
-      const data = await res.json()
+      const result = await raceTranslate(trimmed, sourceLanguage, targetLanguage, controller.signal)
       if (!controller.signal.aborted) {
         setPopup((prev) =>
-          prev ? { ...prev, translation: data.responseData?.translatedText ?? "Translation failed", isLoading: false } : null
+          prev ? { ...prev, translation: result || "Translation failed", isLoading: false } : null
         )
       }
     } catch (e) {

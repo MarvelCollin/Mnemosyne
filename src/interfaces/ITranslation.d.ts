@@ -8,6 +8,7 @@ export interface ITranslationState {
   translation: string | null
   isLoading: boolean
   position: { x: number; y: number }
+  alreadySaved: boolean
 }
 
 export interface IDictionaryEntry {

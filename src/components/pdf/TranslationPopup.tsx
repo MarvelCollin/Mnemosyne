@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react"
 import type { ITranslationState } from "@/interfaces/ITranslation"
 
 interface TranslationPopupProps {
@@ -7,17 +6,11 @@ interface TranslationPopupProps {
 }
 
 export function TranslationPopup({ state, onSave }: TranslationPopupProps) {
-  const { text, translation, isLoading, position } = state
-  const [saved, setSaved] = useState(false)
-
-  useEffect(() => {
-    setSaved(false)
-  }, [text])
+  const { text, translation, isLoading, position, alreadySaved } = state
 
   const handleSave = () => {
-    if (saved || isLoading || !translation) return
+    if (alreadySaved || isLoading || !translation) return
     onSave()
-    setSaved(true)
   }
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -52,10 +45,10 @@ export function TranslationPopup({ state, onSave }: TranslationPopupProps) {
           <button
             onClick={handleSave}
             className={`mt-1.5 text-xs transition-colors ${
-              saved ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              alreadySaved ? "text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {saved ? "Saved" : "Save"}
+            {alreadySaved ? "Saved" : "Save"}
           </button>
         </>
       )}

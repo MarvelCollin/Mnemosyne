@@ -24,6 +24,8 @@ export function useTranslation(containerRef: React.RefObject<HTMLDivElement | nu
   settingsRef.current = settings
   const popupRef = useRef(popup)
   popupRef.current = popup
+  const dictionaryRef = useRef(dictionary)
+  dictionaryRef.current = dictionary
 
   const updateSettings = useCallback((updates: Partial<ITranslationSettings>) => {
     setSettings((prev) => {
@@ -37,14 +39,22 @@ export function useTranslation(containerRef: React.RefObject<HTMLDivElement | nu
     const trimmed = text.trim()
     if (!trimmed) return
 
+    const { sourceLanguage, targetLanguage } = settingsRef.current
+    const cached = dictionaryRef.current.find(
+      (e) => e.source === trimmed && e.targetLanguage === targetLanguage
+    )
+    if (cached) {
+      setPopup({ text: trimmed, translation: cached.translation, isLoading: false, position: { x, y }, alreadySaved: true })
+      return
+    }
+
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
 
-    setPopup({ text: trimmed, translation: null, isLoading: true, position: { x, y } })
+    setPopup({ text: trimmed, translation: null, isLoading: true, position: { x, y }, alreadySaved: false })
 
     try {
-      const { sourceLanguage, targetLanguage } = settingsRef.current
       const encoded = encodeURIComponent(trimmed)
       const res = await fetch(
         `https://api.mymemory.translated.net/get?q=${encoded}&langpair=${sourceLanguage}|${targetLanguage}`,
@@ -71,7 +81,7 @@ export function useTranslation(containerRef: React.RefObject<HTMLDivElement | nu
 
   const saveToDict = useCallback(() => {
     const p = popupRef.current
-    if (!p || !p.translation || p.isLoading) return
+    if (!p || !p.translation || p.isLoading || p.alreadySaved) return
     const { sourceLanguage, targetLanguage } = settingsRef.current
     setDictionary((prev) => {
       if (prev.some((e) => e.source === p.text && e.targetLanguage === targetLanguage)) return prev
@@ -82,6 +92,7 @@ export function useTranslation(containerRef: React.RefObject<HTMLDivElement | nu
       localStorage.setItem(DICT_KEY, JSON.stringify(next))
       return next
     })
+    setPopup((prev) => prev ? { ...prev, alreadySaved: true } : null)
   }, [])
 
   const deleteDictEntry = useCallback((index: number) => {

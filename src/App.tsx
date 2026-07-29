@@ -52,6 +52,14 @@ function App() {
   })
 
   useEffect(() => {
+    if (translationPopup) {
+      autoScrollControls.pause()
+    } else {
+      autoScrollControls.resume()
+    }
+  }, [translationPopup, autoScrollControls.pause, autoScrollControls.resume])
+
+  useEffect(() => {
     loadPersistedDocument().then((file) => {
       if (file) loadFile(file, 0)
     })

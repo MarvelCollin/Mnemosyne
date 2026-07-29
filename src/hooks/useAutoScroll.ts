@@ -12,6 +12,7 @@ export function useAutoScroll(containerRef: React.RefObject<HTMLElement | null>)
   })
   const animationRef = useRef<number>(0)
   const accumulatorRef = useRef(0)
+  const pausedRef = useRef(false)
 
   const scroll = useCallback(() => {
     if (!containerRef.current) return
@@ -25,7 +26,7 @@ export function useAutoScroll(containerRef: React.RefObject<HTMLElement | null>)
   }, [autoScroll.speed, containerRef])
 
   useEffect(() => {
-    if (autoScroll.isActive) {
+    if (autoScroll.isActive && !pausedRef.current) {
       accumulatorRef.current = 0
       animationRef.current = requestAnimationFrame(scroll)
     } else {
@@ -35,6 +36,7 @@ export function useAutoScroll(containerRef: React.RefObject<HTMLElement | null>)
   }, [autoScroll.isActive, scroll])
 
   const toggle = () => {
+    pausedRef.current = false
     setAutoScroll((prev) => ({ ...prev, isActive: !prev.isActive }))
   }
 
@@ -59,5 +61,18 @@ export function useAutoScroll(containerRef: React.RefObject<HTMLElement | null>)
     }))
   }
 
-  return { autoScroll, toggle, setSpeed, increaseSpeed, decreaseSpeed }
+  const pause = useCallback(() => {
+    if (!autoScroll.isActive) return
+    pausedRef.current = true
+    cancelAnimationFrame(animationRef.current)
+  }, [autoScroll.isActive])
+
+  const resume = useCallback(() => {
+    if (!autoScroll.isActive || !pausedRef.current) return
+    pausedRef.current = false
+    accumulatorRef.current = 0
+    animationRef.current = requestAnimationFrame(scroll)
+  }, [autoScroll.isActive, scroll])
+
+  return { autoScroll, toggle, setSpeed, increaseSpeed, decreaseSpeed, pause, resume }
 }

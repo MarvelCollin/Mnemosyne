@@ -9,4 +9,6 @@ export interface IAutoScrollControls {
   setSpeed: (speed: number) => void
   increaseSpeed: () => void
   decreaseSpeed: () => void
+  pause: () => void
+  resume: () => void
 }

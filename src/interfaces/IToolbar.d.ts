@@ -1,6 +1,7 @@
 import type { ThemeMode } from "./ITheme"
 import type { IAutoScrollControls } from "./IAutoScroll"
 import type { IZoomControls } from "./IZoom"
+import type { IBookmarkControls } from "./IBookmark"
 
 export interface IToolbarProps {
   fileName: string
@@ -14,4 +15,6 @@ export interface IToolbarProps {
   onPageChange: (page: number) => void
   translationLabel: string
   onTranslateSettings: () => void
+  bookmarkControls: IBookmarkControls
+  onBookmarkPanel: () => void
 }

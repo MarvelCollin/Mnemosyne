@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import type { IReadingPosition } from "@/interfaces/IReadingPosition"
 
 const STORAGE_KEY = "mnemosyne-positions"
@@ -17,6 +17,7 @@ export function useReadingPosition(
   const currentPageRef = useRef(currentPage)
   currentPageRef.current = currentPage
   const positionsRef = useRef<Record<string, IReadingPosition> | null>(null)
+  const [savedPage, setSavedPage] = useState<number | null>(null)
 
   const getPositions = useCallback(() => {
     if (!positionsRef.current) {
@@ -25,6 +26,16 @@ export function useReadingPosition(
     }
     return positionsRef.current!
   }, [])
+
+  useEffect(() => {
+    if (!file) {
+      setSavedPage(null)
+      return
+    }
+    const positions = getPositions()
+    const position = positions[getFileKey(file)]
+    setSavedPage(position?.currentPage ?? null)
+  }, [file, getPositions])
 
   const save = useCallback(() => {
     if (!file || !containerRef.current) return
@@ -62,5 +73,5 @@ export function useReadingPosition(
     return true
   }, [file, containerRef, getPositions])
 
-  return { restore }
+  return { restore, savedPage }
 }

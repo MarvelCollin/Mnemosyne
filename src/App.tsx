@@ -13,10 +13,9 @@ import { useReadingProgress } from "@/hooks/useReadingProgress"
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { useReadingPosition } from "@/hooks/useReadingPosition"
 import { useTranslation } from "@/hooks/useTranslation"
-import { useBookmarks } from "@/hooks/useBookmarks"
 import { TranslationPopup } from "@/components/pdf/TranslationPopup"
 import { TranslationSettings } from "@/components/pdf/TranslationSettings"
-import { BookmarkPanel } from "@/components/pdf/BookmarkPanel"
+import { ResumeToast } from "@/components/pdf/ResumeToast"
 import { persistDocument, loadPersistedDocument, clearPersistedDocument } from "@/lib/storage"
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
@@ -31,8 +30,6 @@ function App() {
   const [goToPage, setGoToPage] = useState<number | null>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showTranslationSettings, setShowTranslationSettings] = useState(false)
-  const [showBookmarks, setShowBookmarks] = useState(false)
-  const bookmarkControls = useBookmarks(document?.file ?? null)
   const {
     settings: translationSettings,
     updateSettings: updateTranslationSettings,
@@ -42,7 +39,7 @@ function App() {
     deleteDictEntry,
     clearDictionary,
   } = useTranslation(viewerRef)
-  const { restore } = useReadingPosition(
+  const { restore, savedPage } = useReadingPosition(
     document?.file ?? null,
     viewerRef,
     document?.currentPage ?? 1
@@ -103,8 +100,6 @@ function App() {
         onPageChange={handlePageChangeFromNav}
         translationLabel={`${translationSettings.sourceLanguage.toUpperCase()}→${translationSettings.targetLanguage.toUpperCase()}`}
         onTranslateSettings={() => setShowTranslationSettings((prev) => !prev)}
-        bookmarkControls={bookmarkControls}
-        onBookmarkPanel={() => setShowBookmarks((prev) => !prev)}
       />
       <ProgressBar progress={progress} />
       <PdfViewer
@@ -129,15 +124,10 @@ function App() {
         onDeleteEntry={deleteDictEntry}
         onClearDictionary={clearDictionary}
       />
-      <BookmarkPanel
-        isOpen={showBookmarks}
-        onClose={() => setShowBookmarks(false)}
-        controls={bookmarkControls}
-        currentPage={document.currentPage}
-        onGoToPage={(page) => {
-          handlePageChangeFromNav(page)
-          setShowBookmarks(false)
-        }}
+      <ResumeToast
+        savedPage={savedPage}
+        totalPages={document.totalPages}
+        onGoToPage={handlePageChangeFromNav}
       />
       {translationPopup && <TranslationPopup state={translationPopup} onSave={saveToDict} />}
     </div>

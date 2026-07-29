@@ -69,8 +69,13 @@ function App() {
   }
 
   const handleViewerReady = useCallback(() => {
-    restore()
-  }, [restore])
+    const page = restore()
+    if (page) {
+      setCurrentPage(page)
+      setGoToPage(page)
+      setTimeout(() => setGoToPage(null), 500)
+    }
+  }, [restore, setCurrentPage])
 
   const handlePageChangeFromScroll = useCallback((page: number) => {
     setCurrentPage(page)
@@ -79,7 +84,7 @@ function App() {
   const handlePageChangeFromNav = (page: number) => {
     setCurrentPage(page)
     setGoToPage(page)
-    setTimeout(() => setGoToPage(null), 100)
+    setTimeout(() => setGoToPage(null), 500)
   }
 
   if (!document) {

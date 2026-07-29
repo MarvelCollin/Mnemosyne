@@ -8,6 +8,11 @@ function getFileKey(file: File): string {
   return `${file.name}_${file.size}`
 }
 
+function loadPositions(): Record<string, IReadingPosition> {
+  const raw = localStorage.getItem(STORAGE_KEY)
+  return raw ? JSON.parse(raw) : {}
+}
+
 export function useReadingPosition(
   file: File | null,
   containerRef: React.RefObject<HTMLElement | null>,
@@ -16,26 +21,16 @@ export function useReadingPosition(
   const lastSaveRef = useRef(0)
   const currentPageRef = useRef(currentPage)
   currentPageRef.current = currentPage
-  const positionsRef = useRef<Record<string, IReadingPosition> | null>(null)
   const [savedPage, setSavedPage] = useState<number | null>(null)
-
-  const getPositions = useCallback(() => {
-    if (!positionsRef.current) {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      positionsRef.current = raw ? JSON.parse(raw) : {}
-    }
-    return positionsRef.current!
-  }, [])
 
   useEffect(() => {
     if (!file) {
       setSavedPage(null)
       return
     }
-    const positions = getPositions()
-    const position = positions[getFileKey(file)]
+    const position = loadPositions()[getFileKey(file)]
     setSavedPage(position?.currentPage ?? null)
-  }, [file, getPositions])
+  }, [file])
 
   const save = useCallback(() => {
     if (!file || !containerRef.current) return
@@ -44,16 +39,15 @@ export function useReadingPosition(
     lastSaveRef.current = now
 
     const key = getFileKey(file)
-    const positions = getPositions()
+    const positions = loadPositions()
     positions[key] = {
       fileKey: key,
       scrollTop: containerRef.current.scrollTop,
       currentPage: currentPageRef.current,
       timestamp: now,
     }
-    positionsRef.current = positions
     localStorage.setItem(STORAGE_KEY, JSON.stringify(positions))
-  }, [file, containerRef, getPositions])
+  }, [file, containerRef])
 
   useEffect(() => {
     const container = containerRef.current
@@ -62,16 +56,12 @@ export function useReadingPosition(
     return () => container.removeEventListener("scroll", save)
   }, [containerRef, file, save])
 
-  const restore = useCallback(() => {
-    if (!file || !containerRef.current) return false
-    const key = getFileKey(file)
-    const positions = getPositions()
-    const position = positions[key]
-    if (!position) return false
-
-    containerRef.current.scrollTop = position.scrollTop
-    return true
-  }, [file, containerRef, getPositions])
+  const restore = useCallback((): number | null => {
+    if (!file) return null
+    const position = loadPositions()[getFileKey(file)]
+    if (!position || position.currentPage <= 1) return null
+    return position.currentPage
+  }, [file])
 
   return { restore, savedPage }
 }

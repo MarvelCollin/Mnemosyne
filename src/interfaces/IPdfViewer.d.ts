@@ -8,4 +8,5 @@ export interface IPdfViewerProps {
   containerRef: React.RefObject<HTMLDivElement | null>
   goToPage: number | null
   onReady: () => void
+  className?: string
 }

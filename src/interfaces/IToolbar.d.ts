@@ -14,4 +14,8 @@ export interface IToolbarProps {
   onPageChange: (page: number) => void
   translationLabel: string
   onTranslateSettings: () => void
+  isDual: boolean
+  onToggleView: () => void
+  secondaryPage: number
+  onSecondaryPageChange: (page: number) => void
 }

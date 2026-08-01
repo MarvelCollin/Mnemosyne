@@ -16,6 +16,10 @@ export function Toolbar({
   onPageChange,
   translationLabel,
   onTranslateSettings,
+  isDual,
+  onToggleView,
+  secondaryPage,
+  onSecondaryPageChange,
 }: IToolbarProps) {
   return (
     <div className="flex h-11 shrink-0 items-center gap-1.5 px-2 shadow-sm sm:h-12 sm:justify-between sm:gap-0 sm:px-4">
@@ -31,17 +35,39 @@ export function Toolbar({
       </div>
 
       {totalPages > 0 && (
-        <PageNavigation
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={onPageChange}
-        />
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <PageNavigation
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
+          {isDual && (
+            <>
+              <div className="h-4 w-px bg-border/40" />
+              <PageNavigation
+                currentPage={secondaryPage}
+                totalPages={totalPages}
+                onPageChange={onSecondaryPageChange}
+              />
+            </>
+          )}
+        </div>
       )}
 
       <div className="ml-auto flex items-center gap-1 sm:ml-0 sm:gap-2">
         <AutoScrollControls controls={autoScrollControls} />
         <div className="hidden h-4 w-px bg-border/40 sm:block" />
         <ZoomControls controls={zoomControls} />
+        <div className="hidden h-4 w-px bg-border/40 sm:block" />
+        <button
+          onClick={onToggleView}
+          className={`rounded-sm px-1.5 py-1 text-xs font-medium transition-colors sm:px-2 ${
+            isDual ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
+          }`}
+          title="Toggle two page view"
+        >
+          {isDual ? "2 Pages" : "1 Page"}
+        </button>
         <div className="hidden h-4 w-px bg-border/40 sm:block" />
         <button
           onClick={onTranslateSettings}

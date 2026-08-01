@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Document } from "react-pdf"
 import { PdfPage } from "./PdfPage"
+import { cn } from "@/lib/utils"
 import type { IPdfViewerProps } from "@/interfaces/IPdfViewer"
 
 import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"
 
-export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containerRef, goToPage, onReady }: IPdfViewerProps) {
+export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containerRef, goToPage, onReady, className }: IPdfViewerProps) {
   const [totalPages, setTotalPages] = useState(0)
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map())
   const readyCalled = useRef(false)
@@ -81,7 +82,13 @@ export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containe
   }, [])
 
   return (
-    <div ref={containerRef} className="flex flex-1 flex-col items-center overflow-y-auto overflow-x-hidden bg-muted/40 px-3 py-3 sm:px-8 sm:py-8">
+    <div
+      ref={containerRef}
+      className={cn(
+        "flex min-w-0 flex-1 flex-col overflow-auto bg-muted/40 px-3 py-3 sm:px-8 sm:py-8",
+        className
+      )}
+    >
       {totalPages === 0 && (
         <div className="flex flex-1 items-center justify-center">
           <div className="size-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
@@ -90,7 +97,7 @@ export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containe
       <Document
         file={file}
         onLoadSuccess={onLoadSuccess}
-        className="flex flex-col items-center gap-2 sm:gap-4"
+        className="flex w-fit min-w-full flex-col items-center gap-2 sm:gap-4"
       >
         {Array.from({ length: totalPages }, (_, i) => (
           <div key={i + 1} ref={setPageRef(i + 1)} className="pdf-page-wrapper overflow-hidden rounded-lg shadow">

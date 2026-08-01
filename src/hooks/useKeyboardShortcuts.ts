@@ -6,9 +6,10 @@ interface ShortcutHandlers {
   autoScroll: IAutoScrollControls
   zoom: IZoomControls
   onToggleHelp: () => void
+  onToggleView: () => void
 }
 
-export function useKeyboardShortcuts({ autoScroll, zoom, onToggleHelp }: ShortcutHandlers) {
+export function useKeyboardShortcuts({ autoScroll, zoom, onToggleHelp, onToggleView }: ShortcutHandlers) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
@@ -49,6 +50,13 @@ export function useKeyboardShortcuts({ autoScroll, zoom, onToggleHelp }: Shortcu
             zoom.setScale(1)
           }
           break
+        case "d":
+        case "D":
+          if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault()
+            onToggleView()
+          }
+          break
         case "?":
           e.preventDefault()
           onToggleHelp()
@@ -58,5 +66,5 @@ export function useKeyboardShortcuts({ autoScroll, zoom, onToggleHelp }: Shortcu
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [autoScroll, zoom, onToggleHelp])
+  }, [autoScroll, zoom, onToggleHelp, onToggleView])
 }

@@ -159,8 +159,8 @@ export function useTranslation(containerRef: React.RefObject<HTMLDivElement | nu
     const container = containerRef.current
     if (!container || !popup) return
     const handleScroll = () => dismiss()
-    container.addEventListener("scroll", handleScroll, { passive: true })
-    return () => container.removeEventListener("scroll", handleScroll)
+    container.addEventListener("scroll", handleScroll, { passive: true, capture: true })
+    return () => container.removeEventListener("scroll", handleScroll, { capture: true })
   }, [containerRef, popup, dismiss])
 
   return { settings, updateSettings, popup, dismiss, saveToDict, dictionary, deleteDictEntry, clearDictionary }

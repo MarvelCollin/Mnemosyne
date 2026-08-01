@@ -13,6 +13,7 @@ import { useReadingProgress } from "@/hooks/useReadingProgress"
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { useReadingPosition } from "@/hooks/useReadingPosition"
 import { useTranslation } from "@/hooks/useTranslation"
+import { useViewMode } from "@/hooks/useViewMode"
 import { TranslationPopup } from "@/components/pdf/TranslationPopup"
 import { TranslationSettings } from "@/components/pdf/TranslationSettings"
 import { ResumeToast } from "@/components/pdf/ResumeToast"
@@ -20,14 +21,21 @@ import { persistDocument, loadPersistedDocument, clearPersistedDocument } from "
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
 
+const noop = () => {}
+
 function App() {
   const { document, loadFile, clearDocument, setCurrentPage } = useDocument()
   const { theme, setTheme } = useTheme()
+  const contentRef = useRef<HTMLDivElement>(null)
   const viewerRef = useRef<HTMLDivElement>(null)
+  const secondaryViewerRef = useRef<HTMLDivElement>(null)
   const autoScrollControls = useAutoScroll(viewerRef)
   const zoomControls = useZoom()
   const progress = useReadingProgress(viewerRef)
+  const { isDual, toggle: toggleViewMode } = useViewMode()
   const [goToPage, setGoToPage] = useState<number | null>(null)
+  const [secondaryPage, setSecondaryPage] = useState(1)
+  const [goToSecondaryPage, setGoToSecondaryPage] = useState<number | null>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showTranslationSettings, setShowTranslationSettings] = useState(false)
   const {
@@ -38,17 +46,24 @@ function App() {
     dictionary,
     deleteDictEntry,
     clearDictionary,
-  } = useTranslation(viewerRef)
+  } = useTranslation(contentRef)
   const { restore, savedPage } = useReadingPosition(
     document?.file ?? null,
     viewerRef,
     document?.currentPage ?? 1
   )
 
+  const handleToggleView = useCallback(() => {
+    setSecondaryPage(1)
+    setGoToSecondaryPage(null)
+    toggleViewMode()
+  }, [toggleViewMode])
+
   useKeyboardShortcuts({
     autoScroll: autoScrollControls,
     zoom: zoomControls,
     onToggleHelp: () => setShowShortcuts((prev) => !prev),
+    onToggleView: handleToggleView,
   })
 
   useEffect(() => {
@@ -68,6 +83,8 @@ function App() {
   const handleFileSelect = (file: File) => {
     loadFile(file, 0)
     persistDocument(file)
+    setSecondaryPage(1)
+    setGoToSecondaryPage(null)
   }
 
   const handleDocumentLoaded = (totalPages: number) => {
@@ -95,6 +112,12 @@ function App() {
     setTimeout(() => setGoToPage(null), 500)
   }
 
+  const handleSecondaryPageChangeFromNav = (page: number) => {
+    setSecondaryPage(page)
+    setGoToSecondaryPage(page)
+    setTimeout(() => setGoToSecondaryPage(null), 500)
+  }
+
   if (!document) {
     return <PdfUploader onFileSelect={handleFileSelect} />
   }
@@ -113,17 +136,35 @@ function App() {
         onPageChange={handlePageChangeFromNav}
         translationLabel={`${translationSettings.sourceLanguage.toUpperCase()}→${translationSettings.targetLanguage.toUpperCase()}`}
         onTranslateSettings={() => setShowTranslationSettings((prev) => !prev)}
+        isDual={isDual}
+        onToggleView={handleToggleView}
+        secondaryPage={secondaryPage}
+        onSecondaryPageChange={handleSecondaryPageChangeFromNav}
       />
       <ProgressBar progress={progress} />
-      <PdfViewer
-        file={document.file}
-        zoom={zoomControls.zoom}
-        onDocumentLoaded={handleDocumentLoaded}
-        onPageChange={handlePageChangeFromScroll}
-        containerRef={viewerRef}
-        goToPage={goToPage}
-        onReady={handleViewerReady}
-      />
+      <div ref={contentRef} className="flex min-h-0 flex-1">
+        <PdfViewer
+          file={document.file}
+          zoom={zoomControls.zoom}
+          onDocumentLoaded={handleDocumentLoaded}
+          onPageChange={handlePageChangeFromScroll}
+          containerRef={viewerRef}
+          goToPage={goToPage}
+          onReady={handleViewerReady}
+        />
+        {isDual && (
+          <PdfViewer
+            file={document.file}
+            zoom={zoomControls.zoom}
+            onDocumentLoaded={noop}
+            onPageChange={setSecondaryPage}
+            containerRef={secondaryViewerRef}
+            goToPage={goToSecondaryPage}
+            onReady={noop}
+            className="border-l"
+          />
+        )}
+      </div>
       <ShortcutsDialog
         isOpen={showShortcuts}
         onClose={() => setShowShortcuts(false)}

@@ -158,7 +158,10 @@ export function useTranslation(containerRef: React.RefObject<HTMLDivElement | nu
   useEffect(() => {
     const container = containerRef.current
     if (!container || !popup) return
-    const handleScroll = () => dismiss()
+    const handleScroll = (e: Event) => {
+      const anchor = window.getSelection()?.anchorNode
+      if (!anchor || (e.target as Node).contains(anchor)) dismiss()
+    }
     container.addEventListener("scroll", handleScroll, { passive: true, capture: true })
     return () => container.removeEventListener("scroll", handleScroll, { capture: true })
   }, [containerRef, popup, dismiss])

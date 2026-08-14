@@ -1,7 +1,6 @@
 export type TranslationMode = "translate" | "define"
 
 export interface ITranslationSettings {
-  sourceLanguage: string
   targetLanguage: string
   mode: TranslationMode
 }
@@ -26,7 +25,6 @@ export interface ITranslationState {
 export interface IDictionaryEntry {
   source: string
   translation: string
-  sourceLanguage: string
   targetLanguage: string
   timestamp: number
   kind?: "translation" | "definition"

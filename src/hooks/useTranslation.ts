@@ -16,7 +16,6 @@ const SETTINGS_KEY = "mnemosyne-translation";
 const DICT_KEY = "mnemosyne-dictionary";
 
 const defaultSettings: ITranslationSettings = {
-  sourceLanguage: "en",
   targetLanguage: "id",
   mode: "translate",
 };
@@ -76,7 +75,7 @@ export function useTranslation(
       controller: AbortController,
       fellBackToTranslation: boolean,
     ) => {
-      const { sourceLanguage, targetLanguage } = settingsRef.current;
+      const { targetLanguage } = settingsRef.current;
 
       const base = {
         text: trimmed,
@@ -102,7 +101,7 @@ export function useTranslation(
         return;
       }
 
-      const sessionHit = getCached(trimmed, sourceLanguage, targetLanguage);
+      const sessionHit = getCached(trimmed, targetLanguage);
       if (sessionHit) {
         setPopup({
           ...base,
@@ -123,7 +122,6 @@ export function useTranslation(
       try {
         const result = await raceTranslate(
           trimmed,
-          sourceLanguage,
           targetLanguage,
           controller.signal,
         );
@@ -247,7 +245,7 @@ export function useTranslation(
       : p.translation;
     if (!value) return;
 
-    const { sourceLanguage, targetLanguage } = settingsRef.current;
+    const { targetLanguage } = settingsRef.current;
     setDictionary((prev) => {
       if (
         prev.some(
@@ -262,7 +260,6 @@ export function useTranslation(
         {
           source: p.text,
           translation: value,
-          sourceLanguage: kind === "definition" ? "en" : sourceLanguage,
           targetLanguage,
           timestamp: Date.now(),
           kind,

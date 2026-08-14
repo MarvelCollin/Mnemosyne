@@ -83,7 +83,7 @@ async function translateOrKeep(
   signal: AbortSignal
 ): Promise<string> {
   try {
-    return (await raceTranslate(text, "en", targetLanguage, signal)) || text
+    return (await raceTranslate(text, targetLanguage, signal)) || text
   } catch {
     return text
   }

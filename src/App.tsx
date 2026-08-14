@@ -163,7 +163,7 @@ function App() {
         currentPage={document.currentPage}
         totalPages={document.totalPages}
         onPageChange={handlePageChangeFromNav}
-        translationLabel={`${translationSettings.mode === "define" ? "DEF " : ""}${translationSettings.sourceLanguage.toUpperCase()}→${translationSettings.targetLanguage.toUpperCase()}`}
+        translationLabel={`${translationSettings.mode === "define" ? "DEF " : ""}AUTO→${translationSettings.targetLanguage.toUpperCase()}`}
         onTranslateSettings={() => setShowTranslationSettings((prev) => !prev)}
         isDual={isDual}
         onToggleView={handleToggleView}

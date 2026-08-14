@@ -8,7 +8,6 @@ import {
   parseGDriveUrl,
   getApiKey,
   setApiKey,
-  clearApiKey,
   downloadFile,
   getFileName,
   getFolderName,
@@ -79,11 +78,6 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
     setApiKeyState(trimmed);
     setKeyInput("");
     setDriveError(null);
-  };
-
-  const resetKey = () => {
-    clearApiKey();
-    setApiKeyState(getApiKey());
   };
 
   const openShelf = (folderId: string) => {
@@ -228,14 +222,6 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
               </Button>
             </div>
           </div>
-        )}
-
-        {apiKey && (
-          <button
-            onClick={resetKey}
-            className="mt-4 text-xs text-muted-foreground transition-colors hover:text-destructive">
-            Reset Drive API key
-          </button>
         )}
       </div>
 

@@ -69,20 +69,7 @@ export function TranslationSettings({ settings, onUpdate, isOpen, onClose, dicti
           </div>
 
           <div>
-            <label className="text-xs text-muted-foreground">From</label>
-            <select
-              value={settings.sourceLanguage}
-              onChange={(e) => onUpdate({ sourceLanguage: e.target.value })}
-              className="mt-1 w-full rounded-sm border bg-transparent px-2 py-1.5 text-xs transition-colors focus:border-primary focus:outline-none"
-            >
-              {languages.map((lang) => (
-                <option key={lang.code} value={lang.code}>{lang.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-xs text-muted-foreground">To</label>
+            <label className="text-xs text-muted-foreground">Translate into</label>
             <select
               value={settings.targetLanguage}
               onChange={(e) => onUpdate({ targetLanguage: e.target.value })}
@@ -92,6 +79,9 @@ export function TranslationSettings({ settings, onUpdate, isOpen, onClose, dicti
                 <option key={lang.code} value={lang.code}>{lang.name}</option>
               ))}
             </select>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              The source language is detected automatically.
+            </p>
           </div>
         </div>
 

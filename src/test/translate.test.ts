@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { getCached, raceTranslate } from "@/lib/translate"
 
+function urlOf(input: RequestInfo | URL): string {
+  if (typeof input === "string") return input
+  return input instanceof URL ? input.toString() : input.url
+}
+
 describe("translate", () => {
   beforeEach(() => {
     vi.restoreAllMocks()
@@ -8,7 +13,7 @@ describe("translate", () => {
 
   describe("getCached", () => {
     it("returns null for uncached text", () => {
-      expect(getCached("unknown", "en", "id")).toBeNull()
+      expect(getCached("unknown", "id")).toBeNull()
     })
   })
 
@@ -20,22 +25,36 @@ describe("translate", () => {
         )
 
       vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-        const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url
-        if (url.includes("googleapis")) {
+        if (urlOf(input).includes("googleapis")) {
           return mockResponse([[["halo", "hello"]]], 10)
         }
         return mockResponse({ responseData: { translatedText: "halo-mm" } }, 50)
       })
 
       const controller = new AbortController()
-      const result = await raceTranslate("hello", "en", "id", controller.signal)
+      const result = await raceTranslate("hello", "id", controller.signal)
       expect(result).toBe("halo")
+    })
+
+    it("asks both APIs to detect the source language", async () => {
+      const seen: string[] = []
+      vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+        seen.push(urlOf(input))
+        return Promise.resolve(
+          new Response(JSON.stringify([[["selamat pagi", "guten morgen"]]]), { status: 200 })
+        )
+      })
+
+      const controller = new AbortController()
+      await raceTranslate("guten morgen", "id", controller.signal)
+
+      expect(seen.some((url) => url.includes("sl=auto"))).toBe(true)
+      expect(seen.some((url) => url.includes("langpair=Autodetect"))).toBe(true)
     })
 
     it("falls back to second API if first fails", async () => {
       vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-        const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url
-        if (url.includes("googleapis")) {
+        if (urlOf(input).includes("googleapis")) {
           return Promise.resolve(new Response("error", { status: 500 }))
         }
         return Promise.resolve(
@@ -44,7 +63,7 @@ describe("translate", () => {
       })
 
       const controller = new AbortController()
-      const result = await raceTranslate("hello-fallback", "en", "id", controller.signal)
+      const result = await raceTranslate("hello-fallback", "id", controller.signal)
       expect(result).toBe("halo-fallback")
     })
 
@@ -56,9 +75,9 @@ describe("translate", () => {
       )
 
       const controller = new AbortController()
-      await raceTranslate("cache-test", "en", "id", controller.signal)
+      await raceTranslate("cache-test", "id", controller.signal)
 
-      expect(getCached("cache-test", "en", "id")).toBe("cached-result")
+      expect(getCached("cache-test", "id")).toBe("cached-result")
     })
 
     it("returns cached result without fetch on second call", async () => {
@@ -69,10 +88,10 @@ describe("translate", () => {
       )
 
       const controller = new AbortController()
-      await raceTranslate("repeat", "en", "id", controller.signal)
+      await raceTranslate("repeat", "id", controller.signal)
       fetchSpy.mockClear()
 
-      const result = await raceTranslate("repeat", "en", "id", controller.signal)
+      const result = await raceTranslate("repeat", "id", controller.signal)
       expect(result).toBe("repeat-result")
       expect(fetchSpy).not.toHaveBeenCalled()
     })
@@ -84,28 +103,28 @@ describe("translate", () => {
 
       const controller = new AbortController()
       await expect(
-        raceTranslate("fail-both-" + Date.now(), "en", "id", controller.signal)
+        raceTranslate("fail-both-" + Date.now(), "id", controller.signal)
       ).rejects.toThrow("Translation failed")
     })
 
-    it("uses different cache keys per language pair", async () => {
+    it("uses different cache keys per target language", async () => {
       vi.spyOn(globalThis, "fetch")
         .mockImplementationOnce(() =>
-          Promise.resolve(new Response(JSON.stringify([[["result-en-id"]]]), { status: 200 }))
+          Promise.resolve(new Response(JSON.stringify([[["result-id"]]]), { status: 200 }))
         )
         .mockImplementationOnce(() =>
-          Promise.resolve(new Response(JSON.stringify([[["result-en-fr"]]]), { status: 200 }))
+          Promise.resolve(new Response(JSON.stringify([[["result-fr"]]]), { status: 200 }))
         )
         .mockImplementation(() =>
-          Promise.resolve(new Response(JSON.stringify([[["result-en-fr"]]]), { status: 200 }))
+          Promise.resolve(new Response(JSON.stringify([[["result-fr"]]]), { status: 200 }))
         )
 
       const controller = new AbortController()
-      await raceTranslate("lang-test", "en", "id", controller.signal)
-      await raceTranslate("lang-test", "en", "fr", controller.signal)
+      await raceTranslate("lang-test", "id", controller.signal)
+      await raceTranslate("lang-test", "fr", controller.signal)
 
-      expect(getCached("lang-test", "en", "id")).toBe("result-en-id")
-      expect(getCached("lang-test", "en", "fr")).toBe("result-en-fr")
+      expect(getCached("lang-test", "id")).toBe("result-id")
+      expect(getCached("lang-test", "fr")).toBe("result-fr")
     })
   })
 })

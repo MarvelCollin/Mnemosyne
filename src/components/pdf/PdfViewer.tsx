@@ -7,7 +7,7 @@ import type { IPdfViewerProps } from "@/interfaces/IPdfViewer"
 import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"
 
-export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containerRef, goToPage, onReady, className }: IPdfViewerProps) {
+export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containerRef, goToPage, onReady, onInternalLink, className }: IPdfViewerProps) {
   const [totalPages, setTotalPages] = useState(0)
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map())
   const readyCalled = useRef(false)
@@ -16,6 +16,8 @@ export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containe
   const totalPagesRef = useRef(0)
   const onReadyRef = useRef(onReady)
   onReadyRef.current = onReady
+  const onInternalLinkRef = useRef(onInternalLink)
+  onInternalLinkRef.current = onInternalLink
 
   const [pdfDoc, setPdfDoc] = useState<any>(null)
 
@@ -34,6 +36,11 @@ export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containe
       readyCalled.current = true
       setTimeout(() => onReadyRef.current(), 50)
     }
+  }, [])
+
+  const handleItemClick = useCallback(({ pageNumber }: { pageNumber: number }) => {
+    onInternalLinkRef.current?.(pageNumber)
+    pageRefs.current.get(pageNumber)?.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
 
   const handleScroll = useCallback(() => {
@@ -97,6 +104,7 @@ export function PdfViewer({ file, zoom, onDocumentLoaded, onPageChange, containe
       <Document
         file={file}
         onLoadSuccess={onLoadSuccess}
+        onItemClick={handleItemClick}
         className="flex w-fit min-w-full flex-col items-center gap-2 sm:gap-4"
       >
         {Array.from({ length: totalPages }, (_, i) => (

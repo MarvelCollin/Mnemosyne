@@ -8,6 +8,8 @@ import {
   parseGDriveUrl,
   getApiKey,
   setApiKey,
+  getDriveUrl,
+  setDriveUrl,
   downloadFile,
   getFileName,
   getFolderName,
@@ -19,7 +21,7 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
   const inputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
 
-  const [driveUrl, setDriveUrl] = useState("");
+  const [driveUrl, setDriveUrlState] = useState(() => getDriveUrl());
   const [driveError, setDriveError] = useState<string | null>(null);
   const [driveLoading, setDriveLoading] = useState(false);
   const [browseFolderId, setBrowseFolderId] = useState<string | null>(
@@ -30,6 +32,11 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
   const [keyInput, setKeyInput] = useState("");
 
   const { shelves, remember, forget, markOpened } = useLibrary();
+
+  const handleDriveUrlChange = useCallback((value: string) => {
+    setDriveUrlState(value);
+    setDriveUrl(value);
+  }, []);
 
   const handleFile = useCallback(
     (file: File) => {
@@ -165,7 +172,7 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
               <input
                 type="text"
                 value={driveUrl}
-                onChange={(e) => setDriveUrl(e.target.value)}
+                onChange={(e) => handleDriveUrlChange(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleDriveSubmit()}
                 placeholder="Paste Google Drive link..."
                 className="h-10 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"

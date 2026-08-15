@@ -1,4 +1,5 @@
 const API_KEY_STORAGE = "mnemosyne-gdrive-api-key"
+const DRIVE_URL_STORAGE = "mnemosyne-gdrive-url"
 const API_BASE = "https://www.googleapis.com/drive/v3"
 
 export interface GDriveItem {
@@ -20,6 +21,18 @@ export function setApiKey(key: string) {
 
 export function clearApiKey() {
   localStorage.removeItem(API_KEY_STORAGE)
+}
+
+export function getDriveUrl(): string {
+  return localStorage.getItem(DRIVE_URL_STORAGE) || ""
+}
+
+export function setDriveUrl(url: string) {
+  localStorage.setItem(DRIVE_URL_STORAGE, url)
+}
+
+export function clearDriveUrl() {
+  localStorage.removeItem(DRIVE_URL_STORAGE)
 }
 
 export function parseGDriveUrl(url: string): { type: GDriveLinkType; id: string | null } {

@@ -3,7 +3,9 @@ import { BookOpen, Link, Loader2, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GoogleDriveBrowser } from "./GoogleDriveBrowser";
 import { LibraryShelf } from "./LibraryShelf";
+import { ReadingList } from "./ReadingList";
 import { useLibrary } from "@/hooks/useLibrary";
+import { useReadingList } from "@/hooks/useReadingList";
 import {
   parseGDriveUrl,
   getApiKey,
@@ -32,6 +34,7 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
   const [keyInput, setKeyInput] = useState("");
 
   const { shelves, remember, forget, markOpened } = useLibrary();
+  const readingList = useReadingList();
 
   const handleDriveUrlChange = useCallback((value: string) => {
     setDriveUrlState(value);
@@ -230,6 +233,14 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
             </div>
           </div>
         )}
+
+        <ReadingList
+          items={readingList.items}
+          onAdd={readingList.add}
+          onRemove={readingList.remove}
+          onRefreshImage={readingList.refreshImage}
+          isSearching={readingList.isSearching}
+        />
       </div>
 
       {isDragging && (

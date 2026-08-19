@@ -16,6 +16,7 @@ import {
   getFileName,
   getFolderName,
 } from "@/lib/googleDrive";
+import { getLastShelfId } from "@/lib/library";
 import type { IPdfUploaderProps } from "@/interfaces/IPdfUploader";
 
 export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps) {
@@ -240,6 +241,14 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
           onRemove={readingList.remove}
           onRefreshImage={readingList.refreshImage}
           isSearching={readingList.isSearching}
+          isSyncing={readingList.isSyncing}
+          syncError={readingList.syncError}
+          onSyncFromDrive={readingList.syncFromDrive}
+          onImportFromFile={readingList.importFromFile}
+          onExportToFile={readingList.exportToFile}
+          onClearSyncError={readingList.clearSyncError}
+          apiKey={apiKey}
+          libraryFolderId={getLastShelfId()}
         />
       </div>
 

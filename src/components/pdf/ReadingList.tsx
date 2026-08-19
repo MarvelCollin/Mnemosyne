@@ -1,5 +1,16 @@
-import { useState } from "react"
-import { BookMarked, Plus, ExternalLink, Trash2, RefreshCw, Loader2, Image } from "lucide-react"
+import { useState, useRef } from "react"
+import {
+  BookMarked,
+  Plus,
+  ExternalLink,
+  Trash2,
+  RefreshCw,
+  Loader2,
+  Image,
+  Download,
+  Upload,
+  CloudDownload,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { IReadingItem } from "@/interfaces/IReadingList"
 
@@ -9,6 +20,14 @@ interface ReadingListProps {
   onRemove: (id: string) => void
   onRefreshImage: (id: string, title: string) => Promise<void>
   isSearching: boolean
+  isSyncing: boolean
+  syncError: string | null
+  onSyncFromDrive: (folderId: string, apiKey: string) => Promise<boolean>
+  onImportFromFile: (file: File) => Promise<boolean>
+  onExportToFile: () => void
+  onClearSyncError: () => void
+  apiKey: string | null
+  libraryFolderId: string | null
 }
 
 export function ReadingList({
@@ -17,10 +36,19 @@ export function ReadingList({
   onRemove,
   onRefreshImage,
   isSearching,
+  isSyncing,
+  syncError,
+  onSyncFromDrive,
+  onImportFromFile,
+  onExportToFile,
+  onClearSyncError,
+  apiKey,
+  libraryFolderId,
 }: ReadingListProps) {
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState("")
   const [link, setLink] = useState("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,6 +59,22 @@ export function ReadingList({
     setShowForm(false)
   }
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      await onImportFromFile(file)
+      e.target.value = ""
+    }
+  }
+
+  const handleSyncFromDrive = async () => {
+    if (apiKey && libraryFolderId) {
+      await onSyncFromDrive(libraryFolderId, apiKey)
+    }
+  }
+
+  const canSyncFromDrive = apiKey && libraryFolderId
+
   return (
     <div className="mt-8 w-full">
       <div className="mb-2 flex items-center justify-between">
@@ -40,15 +84,73 @@ export function ReadingList({
             Daftar Bacaan
           </h2>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowForm(!showForm)}
-          className="h-7 px-2"
-        >
-          <Plus className="size-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {canSyncFromDrive && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSyncFromDrive}
+              disabled={isSyncing}
+              title="Sync from Google Drive"
+              className="h-7 px-2"
+            >
+              {isSyncing ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <CloudDownload className="size-4" />
+              )}
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            title="Import from file"
+            className="h-7 px-2"
+          >
+            <Upload className="size-4" />
+          </Button>
+          {items.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onExportToFile}
+              title="Export to file"
+              className="h-7 px-2"
+            >
+              <Download className="size-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowForm(!showForm)}
+            className="h-7 px-2"
+          >
+            <Plus className="size-4" />
+          </Button>
+        </div>
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
+      {syncError && (
+        <div className="mb-3 flex items-center justify-between rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <span>{syncError}</span>
+          <button
+            onClick={onClearSyncError}
+            className="ml-2 text-destructive/70 hover:text-destructive"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={handleSubmit} className="mb-3 rounded-lg border bg-card p-3">
@@ -93,7 +195,7 @@ export function ReadingList({
             Belum ada bacaan tersimpan
           </p>
           <p className="mt-1 text-xs text-muted-foreground/75">
-            Klik + untuk menambah bacaan baru
+            Click + to add a new reading, or import from a JSON file
           </p>
         </div>
       ) : (
@@ -165,6 +267,12 @@ export function ReadingList({
             </div>
           ))}
         </div>
+      )}
+
+      {canSyncFromDrive && (
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          Place a <code className="rounded bg-muted px-1">reading-list.json</code> file in your Google Drive folder to sync
+        </p>
       )}
     </div>
   )

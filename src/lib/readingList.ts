@@ -1,6 +1,8 @@
 import type { IReadingItem } from "@/interfaces/IReadingList"
+import { listFolder, downloadFile } from "@/lib/googleDrive"
 
-const READING_LIST_KEY = "Mnemosyne - Yomu-reading-list"
+const READING_LIST_KEY = "mnemosyne-reading-list"
+const READING_LIST_FILENAME = "reading-list.json"
 
 export function getReadingList(): IReadingItem[] {
   const raw = localStorage.getItem(READING_LIST_KEY)
@@ -16,6 +18,61 @@ export function getReadingList(): IReadingItem[] {
 function persist(items: IReadingItem[]): IReadingItem[] {
   localStorage.setItem(READING_LIST_KEY, JSON.stringify(items))
   return items
+}
+
+export function exportReadingListToJson(items: IReadingItem[]): string {
+  return JSON.stringify(items, null, 2)
+}
+
+export function importReadingListFromJson(json: string): IReadingItem[] | null {
+  try {
+    const parsed = JSON.parse(json)
+    if (!Array.isArray(parsed)) return null
+    const valid = parsed.every(
+      (item) =>
+        typeof item.id === "string" &&
+        typeof item.title === "string" &&
+        typeof item.link === "string" &&
+        typeof item.addedAt === "number"
+    )
+    if (!valid) return null
+    return parsed as IReadingItem[]
+  } catch {
+    return null
+  }
+}
+
+export async function loadReadingListFromDrive(
+  folderId: string,
+  apiKey: string
+): Promise<IReadingItem[] | null> {
+  try {
+    const files = await listFolder(folderId, apiKey)
+    const readingListFile = files.find(
+      (f) => f.name === READING_LIST_FILENAME && f.mimeType === "application/json"
+    )
+    
+    if (!readingListFile) return null
+    
+    const buffer = await downloadFile(readingListFile.id, apiKey)
+    const text = new TextDecoder().decode(buffer)
+    return importReadingListFromJson(text)
+  } catch {
+    return null
+  }
+}
+
+export function downloadReadingListFile(items: IReadingItem[]) {
+  const json = exportReadingListToJson(items)
+  const blob = new Blob([json], { type: "application/json" })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = READING_LIST_FILENAME
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 export function addReadingItem(item: Omit<IReadingItem, "id" | "addedAt">): IReadingItem[] {

@@ -10,6 +10,9 @@ import {
   Download,
   Upload,
   CloudDownload,
+  CloudUpload,
+  Cloud,
+  Check,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { IReadingItem } from "@/interfaces/IReadingList"
@@ -22,12 +25,17 @@ interface ReadingListProps {
   isSearching: boolean
   isSyncing: boolean
   syncError: string | null
+  lastSyncTime: number | null
   onSyncFromDrive: (folderId: string, apiKey: string) => Promise<boolean>
   onImportFromFile: (file: File) => Promise<boolean>
   onExportToFile: () => void
   onClearSyncError: () => void
+  onSaveToDrive: (accessToken: string) => Promise<boolean>
+  onLoadFromDrive: (accessToken: string) => Promise<boolean>
   apiKey: string | null
   libraryFolderId: string | null
+  isSignedIn: boolean
+  accessToken: string | null
 }
 
 export function ReadingList({
@@ -38,12 +46,17 @@ export function ReadingList({
   isSearching,
   isSyncing,
   syncError,
+  lastSyncTime,
   onSyncFromDrive,
   onImportFromFile,
   onExportToFile,
   onClearSyncError,
+  onSaveToDrive,
+  onLoadFromDrive,
   apiKey,
   libraryFolderId,
+  isSignedIn,
+  accessToken,
 }: ReadingListProps) {
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState("")
@@ -73,7 +86,20 @@ export function ReadingList({
     }
   }
 
+  const handleSaveToDrive = async () => {
+    if (accessToken) {
+      await onSaveToDrive(accessToken)
+    }
+  }
+
+  const handleLoadFromDrive = async () => {
+    if (accessToken) {
+      await onLoadFromDrive(accessToken)
+    }
+  }
+
   const canSyncFromDrive = apiKey && libraryFolderId
+  const canSyncWithOAuth = isSignedIn && accessToken
 
   return (
     <div className="mt-8 w-full">
@@ -85,13 +111,43 @@ export function ReadingList({
           </h2>
         </div>
         <div className="flex items-center gap-1">
-          {canSyncFromDrive && (
+          {canSyncWithOAuth && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLoadFromDrive}
+                disabled={isSyncing}
+                title="Load from Google Drive"
+                className="h-7 px-2"
+              >
+                {isSyncing ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <CloudDownload className="size-4" />
+                )}
+              </Button>
+              {items.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSaveToDrive}
+                  disabled={isSyncing}
+                  title="Save to Google Drive"
+                  className="h-7 px-2"
+                >
+                  <CloudUpload className="size-4" />
+                </Button>
+              )}
+            </>
+          )}
+          {!canSyncWithOAuth && canSyncFromDrive && (
             <Button
               variant="ghost"
               size="sm"
               onClick={handleSyncFromDrive}
               disabled={isSyncing}
-              title="Sync from Google Drive"
+              title="Sync from Google Drive folder"
               className="h-7 px-2"
             >
               {isSyncing ? (
@@ -269,11 +325,23 @@ export function ReadingList({
         </div>
       )}
 
-      {canSyncFromDrive && (
+      {canSyncWithOAuth ? (
+        <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+          <Cloud className="size-3" />
+          {lastSyncTime ? (
+            <span className="flex items-center gap-1">
+              <Check className="size-3 text-green-500" />
+              Synced to Google Drive
+            </span>
+          ) : (
+            <span>Auto-syncing to Google Drive</span>
+          )}
+        </div>
+      ) : canSyncFromDrive ? (
         <p className="mt-3 text-center text-xs text-muted-foreground">
           Place a <code className="rounded bg-muted px-1">reading-list.json</code> file in your Google Drive folder to sync
         </p>
-      )}
+      ) : null}
     </div>
   )
 }

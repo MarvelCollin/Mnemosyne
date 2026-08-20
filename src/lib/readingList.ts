@@ -1,5 +1,10 @@
 import type { IReadingItem } from "@/interfaces/IReadingList"
-import { listFolder, downloadFile } from "@/lib/googleDrive"
+import {
+  listFolder,
+  downloadFile,
+  uploadJsonFile,
+  loadJsonFromAppFolder,
+} from "@/lib/googleDrive"
 
 const READING_LIST_KEY = "mnemosyne-reading-list"
 const READING_LIST_FILENAME = "reading-list.json"
@@ -112,6 +117,31 @@ export async function searchBookImage(title: string): Promise<string | null> {
     }
     
     return null
+  } catch {
+    return null
+  }
+}
+
+export async function saveReadingListToDrive(
+  items: IReadingItem[],
+  accessToken: string
+): Promise<boolean> {
+  try {
+    const json = exportReadingListToJson(items)
+    const fileId = await uploadJsonFile(READING_LIST_FILENAME, json, accessToken)
+    return !!fileId
+  } catch {
+    return false
+  }
+}
+
+export async function loadReadingListFromDriveWithToken(
+  accessToken: string
+): Promise<IReadingItem[] | null> {
+  try {
+    const json = await loadJsonFromAppFolder(READING_LIST_FILENAME, accessToken)
+    if (!json) return null
+    return importReadingListFromJson(json)
   } catch {
     return null
   }

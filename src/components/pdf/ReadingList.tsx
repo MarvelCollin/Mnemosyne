@@ -128,7 +128,7 @@ export function ReadingList({
         <div className="flex items-center gap-1.5">
           <BookMarked className="size-3.5 text-muted-foreground" />
           <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Daftar Bacaan
+            Reading List
           </h2>
         </div>
         <div className="flex items-center gap-1">
@@ -230,42 +230,42 @@ export function ReadingList({
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-3 rounded-lg border bg-card p-3">
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="mb-3 rounded-lg border bg-card p-4">
+          <div className="space-y-3">
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Judul buku atau artikel..."
-              className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="Book or movie title..."
+              className="h-11 w-full rounded-md border bg-background px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
             />
             <input
               type="text"
               value={link}
               onChange={(e) => setLink(e.target.value)}
-              placeholder="https://example.com/article"
-              className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="https://..."
+              className="h-11 w-full rounded-md border bg-background px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
             />
             <input
               type="text"
               value={lastProgress}
               onChange={(e) => setLastProgress(e.target.value)}
               placeholder="Last chapter/episode (optional)"
-              className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
+              className="h-11 w-full rounded-md border bg-background px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
             />
-            <div className="flex gap-2">
-              <Button type="submit" size="sm" disabled={!title.trim() || !link.trim() || isSearching}>
+            <div className="flex gap-2 pt-1">
+              <Button type="submit" className="h-10 flex-1" disabled={!title.trim() || !link.trim() || isSearching}>
                 {isSearching ? (
                   <>
-                    <Loader2 className="mr-1.5 size-3.5 animate-spin" />
-                    Mencari gambar...
+                    <Loader2 className="mr-1.5 size-4 animate-spin" />
+                    Searching...
                   </>
                 ) : (
-                  "Tambah"
+                  "Add"
                 )}
               </Button>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setShowForm(false)}>
-                Batal
+              <Button type="button" variant="ghost" className="h-10" onClick={() => setShowForm(false)}>
+                Cancel
               </Button>
             </div>
           </div>
@@ -276,7 +276,7 @@ export function ReadingList({
         <div className="rounded-lg border border-dashed bg-card/50 p-6 text-center">
           <BookMarked className="mx-auto size-8 text-muted-foreground/50" />
           <p className="mt-2 text-sm text-muted-foreground">
-            Belum ada bacaan tersimpan
+            No saved readings yet
           </p>
           <p className="mt-1 text-xs text-muted-foreground/75">
             Click + to add a new reading, or import from a JSON file
@@ -319,7 +319,7 @@ export function ReadingList({
                   </div>
                 </div>
               </a>
-              <div className="border-t px-3 py-2">
+              <div className="border-t px-3 py-2.5">
                 {editingProgressId === item.id ? (
                   <div className="flex items-center gap-2">
                     <input
@@ -331,12 +331,12 @@ export function ReadingList({
                         if (e.key === "Escape") setEditingProgressId(null)
                       }}
                       placeholder="Ch. 1, Ep. 5, etc."
-                      className="h-7 min-w-0 flex-1 rounded border bg-background px-2 text-xs outline-none focus:border-primary"
+                      className="h-9 min-w-0 flex-1 rounded border bg-background px-3 text-sm outline-none focus:border-primary"
                       autoFocus
                     />
                     <button
                       onClick={() => handleProgressSave(item.id)}
-                      className="text-xs text-primary hover:underline"
+                      className="h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
                     >
                       Save
                     </button>
@@ -344,7 +344,7 @@ export function ReadingList({
                 ) : (
                   <button
                     onClick={() => handleProgressEdit(item)}
-                    className="w-full text-left text-xs text-muted-foreground hover:text-foreground"
+                    className="w-full min-h-[36px] flex items-center text-left text-sm text-muted-foreground hover:text-foreground active:text-foreground"
                   >
                     {item.lastProgress ? (
                       <span>Progress: <span className="font-medium text-foreground">{item.lastProgress}</span></span>
@@ -354,7 +354,7 @@ export function ReadingList({
                   </button>
                 )}
               </div>
-              <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="absolute right-1 top-1 flex gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
                 <button
                   onClick={(e) => {
                     e.preventDefault()
@@ -362,13 +362,13 @@ export function ReadingList({
                     onRefreshImage(item.id, item.title)
                   }}
                   disabled={isSearching}
-                  title="Perbarui gambar"
-                  className="rounded-md bg-background/90 p-1.5 text-muted-foreground backdrop-blur-sm transition-colors hover:text-foreground disabled:opacity-50"
+                  title="Refresh image"
+                  className="rounded-md bg-background/90 p-2 text-muted-foreground backdrop-blur-sm transition-colors hover:text-foreground active:bg-background disabled:opacity-50"
                 >
                   {isSearching ? (
-                    <Loader2 className="size-3.5 animate-spin" />
+                    <Loader2 className="size-4 animate-spin" />
                   ) : (
-                    <RefreshCw className="size-3.5" />
+                    <RefreshCw className="size-4" />
                   )}
                 </button>
                 <button
@@ -377,10 +377,10 @@ export function ReadingList({
                     e.stopPropagation()
                     onRemove(item.id)
                   }}
-                  title="Hapus dari daftar"
-                  className="rounded-md bg-background/90 p-1.5 text-muted-foreground backdrop-blur-sm transition-colors hover:text-destructive"
+                  title="Remove from list"
+                  className="rounded-md bg-background/90 p-2 text-muted-foreground backdrop-blur-sm transition-colors hover:text-destructive active:bg-background"
                 >
-                  <Trash2 className="size-3.5" />
+                  <Trash2 className="size-4" />
                 </button>
               </div>
             </div>

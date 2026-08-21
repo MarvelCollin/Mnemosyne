@@ -355,6 +355,7 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
               items={readingList.items}
               onAdd={readingList.add}
               onRemove={readingList.remove}
+              onUpdate={readingList.update}
               onRefreshImage={readingList.refreshImage}
               isSearching={readingList.isSearching}
               isSyncing={readingList.isSyncing}

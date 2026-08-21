@@ -19,8 +19,9 @@ import type { IReadingItem } from "@/interfaces/IReadingList"
 
 interface ReadingListProps {
   items: IReadingItem[]
-  onAdd: (title: string, link: string) => Promise<void>
+  onAdd: (title: string, link: string, lastProgress?: string) => Promise<void>
   onRemove: (id: string) => void
+  onUpdate: (id: string, updates: Partial<Omit<IReadingItem, "id" | "addedAt">>) => void
   onRefreshImage: (id: string, title: string) => Promise<void>
   isSearching: boolean
   isSyncing: boolean
@@ -42,6 +43,7 @@ export function ReadingList({
   items,
   onAdd,
   onRemove,
+  onUpdate,
   onRefreshImage,
   isSearching,
   isSyncing,
@@ -61,6 +63,9 @@ export function ReadingList({
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState("")
   const [link, setLink] = useState("")
+  const [lastProgress, setLastProgress] = useState("")
+  const [editingProgressId, setEditingProgressId] = useState<string | null>(null)
+  const [editingProgressValue, setEditingProgressValue] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,10 +75,22 @@ export function ReadingList({
     if (!finalLink.startsWith("http://") && !finalLink.startsWith("https://")) {
       finalLink = "https://" + finalLink
     }
-    await onAdd(title.trim(), finalLink)
+    await onAdd(title.trim(), finalLink, lastProgress.trim() || undefined)
     setTitle("")
     setLink("")
+    setLastProgress("")
     setShowForm(false)
+  }
+
+  const handleProgressEdit = (item: IReadingItem) => {
+    setEditingProgressId(item.id)
+    setEditingProgressValue(item.lastProgress || "")
+  }
+
+  const handleProgressSave = (id: string) => {
+    onUpdate(id, { lastProgress: editingProgressValue.trim() || undefined })
+    setEditingProgressId(null)
+    setEditingProgressValue("")
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,6 +246,13 @@ export function ReadingList({
               placeholder="https://example.com/article"
               className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
             />
+            <input
+              type="text"
+              value={lastProgress}
+              onChange={(e) => setLastProgress(e.target.value)}
+              placeholder="Last chapter/episode (optional)"
+              className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
+            />
             <div className="flex gap-2">
               <Button type="submit" size="sm" disabled={!title.trim() || !link.trim() || isSearching}>
                 {isSearching ? (
@@ -295,6 +319,41 @@ export function ReadingList({
                   </div>
                 </div>
               </a>
+              <div className="border-t px-3 py-2">
+                {editingProgressId === item.id ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editingProgressValue}
+                      onChange={(e) => setEditingProgressValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleProgressSave(item.id)
+                        if (e.key === "Escape") setEditingProgressId(null)
+                      }}
+                      placeholder="Ch. 1, Ep. 5, etc."
+                      className="h-7 min-w-0 flex-1 rounded border bg-background px-2 text-xs outline-none focus:border-primary"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => handleProgressSave(item.id)}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Save
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleProgressEdit(item)}
+                    className="w-full text-left text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    {item.lastProgress ? (
+                      <span>Progress: <span className="font-medium text-foreground">{item.lastProgress}</span></span>
+                    ) : (
+                      <span className="italic">+ Add progress</span>
+                    )}
+                  </button>
+                )}
+              </div>
               <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <button
                   onClick={(e) => {

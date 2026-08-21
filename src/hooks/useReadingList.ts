@@ -31,11 +31,11 @@ export function useReadingList() {
     accessTokenRef.current = token
   }, [])
 
-  const add = useCallback(async (title: string, link: string) => {
+  const add = useCallback(async (title: string, link: string, lastProgress?: string) => {
     setIsSearching(true)
     try {
       const imageUrl = await searchBookImage(title)
-      const newItems = addReadingItem({ title, link, imageUrl: imageUrl ?? undefined })
+      const newItems = addReadingItem({ title, link, imageUrl: imageUrl ?? undefined, lastProgress })
       setItems(newItems)
       if (accessTokenRef.current) {
         saveReadingListToDrive(newItems, accessTokenRef.current).catch(() => {})

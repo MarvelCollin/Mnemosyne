@@ -3,5 +3,6 @@ export interface IReadingItem {
   title: string
   link: string
   imageUrl?: string
+  lastProgress?: string
   addedAt: number
 }

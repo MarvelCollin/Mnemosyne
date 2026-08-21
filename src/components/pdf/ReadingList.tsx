@@ -66,7 +66,11 @@ export function ReadingList({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim() || !link.trim()) return
-    await onAdd(title.trim(), link.trim())
+    let finalLink = link.trim()
+    if (!finalLink.startsWith("http://") && !finalLink.startsWith("https://")) {
+      finalLink = "https://" + finalLink
+    }
+    await onAdd(title.trim(), finalLink)
     setTitle("")
     setLink("")
     setShowForm(false)
@@ -219,10 +223,10 @@ export function ReadingList({
               className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
             />
             <input
-              type="url"
+              type="text"
               value={link}
               onChange={(e) => setLink(e.target.value)}
-              placeholder="https://..."
+              placeholder="https://example.com/article"
               className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
             />
             <div className="flex gap-2">

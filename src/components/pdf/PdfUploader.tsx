@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+﻿import { useState, useRef, useCallback, useEffect } from "react";
 import { BookOpen, Link, Loader2, KeyRound, LogOut, FileText, BookMarked } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GoogleDriveBrowser } from "./GoogleDriveBrowser";
@@ -163,42 +163,46 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
       onDragEnter={onDragEnter}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
-      className="relative flex min-h-svh flex-col items-center px-4 py-12">
-      <div className="flex w-full max-w-md flex-col items-center">
-        <h1 className="font-serif-display text-6xl tracking-tight sm:text-7xl">
-          Mnemosyne
-        </h1>
-        <p className="mt-3 text-muted-foreground">Your personal reading space</p>
-
-        <div className="mt-8 flex w-full rounded-lg border bg-muted/50 p-1">
-          <button
-            onClick={() => setActiveTab("open")}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "open"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <FileText className="size-4" />
-            Open PDF
-          </button>
-          <button
-            onClick={() => setActiveTab("reading-list")}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "reading-list"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <BookMarked className="size-4" />
-            Reading List
-            {readingList.items.length > 0 && (
-              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
-                {readingList.items.length}
-              </span>
-            )}
-          </button>
+      className="relative flex min-h-svh flex-col">
+      <nav className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex h-14 max-w-screen-xl items-center justify-between px-4">
+          <h1 className="font-serif-display text-xl tracking-tight">
+            Mnemosyne
+          </h1>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setActiveTab("open")}
+              className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                activeTab === "open"
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              <FileText className="size-4" />
+              <span className="hidden sm:inline">Open PDF</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("reading-list")}
+              className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                activeTab === "reading-list"
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              <BookMarked className="size-4" />
+              <span className="hidden sm:inline">Reading List</span>
+              {readingList.items.length > 0 && (
+                <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
+                  {readingList.items.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
+      </nav>
+
+      <div className="flex flex-1 flex-col items-center px-4 py-12">
+        <div className="flex w-full max-w-md flex-col items-center">
 
         {activeTab === "open" ? (
           <>
@@ -369,6 +373,7 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
             />
           </>
         )}
+        </div>
       </div>
 
       {isDragging && (
@@ -394,3 +399,4 @@ export function PdfUploader({ onFileSelect, initialFolderId }: IPdfUploaderProps
     </div>
   );
 }
+

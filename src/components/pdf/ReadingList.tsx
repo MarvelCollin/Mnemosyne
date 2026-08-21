@@ -102,7 +102,7 @@ export function ReadingList({
   const canSyncWithOAuth = isSignedIn && accessToken
 
   return (
-    <div className="mt-8 w-full">
+    <div className="mt-6 w-full">
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <BookMarked className="size-3.5 text-muted-foreground" />

@@ -1,26 +1,25 @@
 const sessionCache = new Map<string, string>()
 
-function cacheKey(text: string, source: string, target: string): string {
-  return `${source}|${target}|${text}`
+function cacheKey(text: string, target: string): string {
+  return `${target}|${text}`
 }
 
-export function getCached(text: string, source: string, target: string): string | null {
-  return sessionCache.get(cacheKey(text, source, target)) ?? null
+export function getCached(text: string, target: string): string | null {
+  return sessionCache.get(cacheKey(text, target)) ?? null
 }
 
-function setCache(text: string, source: string, target: string, translation: string) {
-  sessionCache.set(cacheKey(text, source, target), translation)
+function setCache(text: string, target: string, translation: string) {
+  sessionCache.set(cacheKey(text, target), translation)
 }
 
 async function googleTranslate(
   text: string,
-  source: string,
   target: string,
   signal: AbortSignal
 ): Promise<string> {
   const encoded = encodeURIComponent(text)
   const res = await fetch(
-    `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encoded}`,
+    `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encoded}`,
     { signal }
   )
   if (!res.ok) throw new Error(`Google: ${res.status}`)
@@ -34,13 +33,12 @@ async function googleTranslate(
 
 async function myMemoryTranslate(
   text: string,
-  source: string,
   target: string,
   signal: AbortSignal
 ): Promise<string> {
   const encoded = encodeURIComponent(text)
   const res = await fetch(
-    `https://api.mymemory.translated.net/get?q=${encoded}&langpair=${source}|${target}`,
+    `https://api.mymemory.translated.net/get?q=${encoded}&langpair=Autodetect|${target}`,
     { signal }
   )
   if (!res.ok) throw new Error(`MyMemory: ${res.status}`)
@@ -50,20 +48,19 @@ async function myMemoryTranslate(
 
 export async function raceTranslate(
   text: string,
-  source: string,
   target: string,
   signal: AbortSignal
 ): Promise<string> {
-  const cached = getCached(text, source, target)
+  const cached = getCached(text, target)
   if (cached) return cached
 
   const result = await Promise.any([
-    googleTranslate(text, source, target, signal),
-    myMemoryTranslate(text, source, target, signal),
+    googleTranslate(text, target, signal),
+    myMemoryTranslate(text, target, signal),
   ]).catch(() => {
     throw new Error("Translation failed")
   })
 
-  if (result) setCache(text, source, target, result)
+  if (result) setCache(text, target, result)
   return result
 }

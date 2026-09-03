@@ -14,10 +14,13 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { useReadingPosition } from "@/hooks/useReadingPosition"
 import { useTranslation } from "@/hooks/useTranslation"
 import { useViewMode } from "@/hooks/useViewMode"
+import { useFootnoteReturn } from "@/hooks/useFootnoteReturn"
+import { FootnoteBackButton } from "@/components/pdf/FootnoteBackButton"
 import { TranslationPopup } from "@/components/pdf/TranslationPopup"
 import { TranslationSettings } from "@/components/pdf/TranslationSettings"
 import { ResumeToast } from "@/components/pdf/ResumeToast"
 import { persistDocument, loadPersistedDocument, clearPersistedDocument } from "@/lib/storage"
+import { getLastShelfId } from "@/lib/library"
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
 
@@ -37,6 +40,7 @@ function App() {
   const [secondaryPage, setSecondaryPage] = useState(1)
   const [goToSecondaryPage, setGoToSecondaryPage] = useState<number | null>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [libraryFolderId, setLibraryFolderId] = useState<string | null>(null)
   const [showTranslationSettings, setShowTranslationSettings] = useState(false)
   const {
     settings: translationSettings,
@@ -47,6 +51,11 @@ function App() {
     deleteDictEntry,
     clearDictionary,
   } = useTranslation(contentRef)
+  const footnote = useFootnoteReturn(
+    viewerRef,
+    document?.currentPage ?? 1,
+    document?.file ?? null
+  )
   const { restore, savedPage } = useReadingPosition(
     document?.file ?? null,
     viewerRef,
@@ -64,6 +73,7 @@ function App() {
     zoom: zoomControls,
     onToggleHelp: () => setShowShortcuts((prev) => !prev),
     onToggleView: handleToggleView,
+    onFootnoteBack: footnote.goBack,
   })
 
   useEffect(() => {
@@ -85,6 +95,19 @@ function App() {
     persistDocument(file)
     setSecondaryPage(1)
     setGoToSecondaryPage(null)
+    setLibraryFolderId(null)
+  }
+
+  const handleClose = () => {
+    setLibraryFolderId(null)
+    clearDocument()
+    clearPersistedDocument()
+  }
+
+  const handleOpenLibrary = () => {
+    setLibraryFolderId(getLastShelfId())
+    clearDocument()
+    clearPersistedDocument()
   }
 
   const handleDocumentLoaded = (totalPages: number) => {
@@ -119,7 +142,12 @@ function App() {
   }
 
   if (!document) {
-    return <PdfUploader onFileSelect={handleFileSelect} />
+    return (
+      <PdfUploader
+        onFileSelect={handleFileSelect}
+        initialFolderId={libraryFolderId}
+      />
+    )
   }
 
   return (
@@ -128,13 +156,14 @@ function App() {
         fileName={document.name}
         theme={theme}
         onThemeChange={setTheme}
-        onClose={() => { clearDocument(); clearPersistedDocument() }}
+        onClose={handleClose}
+        onOpenLibrary={handleOpenLibrary}
         autoScrollControls={autoScrollControls}
         zoomControls={zoomControls}
         currentPage={document.currentPage}
         totalPages={document.totalPages}
         onPageChange={handlePageChangeFromNav}
-        translationLabel={`${translationSettings.sourceLanguage.toUpperCase()}→${translationSettings.targetLanguage.toUpperCase()}`}
+        translationLabel={`${translationSettings.mode === "define" ? "DEF " : ""}AUTO→${translationSettings.targetLanguage.toUpperCase()}`}
         onTranslateSettings={() => setShowTranslationSettings((prev) => !prev)}
         isDual={isDual}
         onToggleView={handleToggleView}
@@ -151,6 +180,7 @@ function App() {
           containerRef={viewerRef}
           goToPage={goToPage}
           onReady={handleViewerReady}
+          onInternalLink={footnote.push}
         />
         {isDual && (
           <PdfViewer
@@ -183,6 +213,7 @@ function App() {
         totalPages={document.totalPages}
         onGoToPage={handlePageChangeFromNav}
       />
+      <FootnoteBackButton returnPoint={footnote.returnPoint} onGoBack={footnote.goBack} />
       {translationPopup && <TranslationPopup state={translationPopup} onSave={saveToDict} />}
     </div>
   )

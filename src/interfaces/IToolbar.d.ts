@@ -7,6 +7,7 @@ export interface IToolbarProps {
   theme: ThemeMode
   onThemeChange: (theme: ThemeMode) => void
   onClose: () => void
+  onOpenLibrary: () => void
   autoScrollControls: IAutoScrollControls
   zoomControls: IZoomControls
   currentPage: number

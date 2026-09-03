@@ -1,4 +1,8 @@
-import type { ITranslationSettings, IDictionaryEntry } from "@/interfaces/ITranslation"
+import type {
+  ITranslationSettings,
+  IDictionaryEntry,
+  TranslationMode,
+} from "@/interfaces/ITranslation"
 
 const languages = [
   { code: "id", name: "Indonesian" },
@@ -39,24 +43,33 @@ export function TranslationSettings({ settings, onUpdate, isOpen, onClose, dicti
         onClick={(e) => e.stopPropagation()}
       >
         <h4 className="text-sm font-semibold tracking-tight">Translation</h4>
-        <p className="mt-1 text-xs text-muted-foreground">Select text in the PDF to translate</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {settings.mode === "define"
+            ? "Select a single English word to look up its meaning"
+            : "Select text in the PDF to translate"}
+        </p>
 
         <div className="mt-3 space-y-3">
           <div>
-            <label className="text-xs text-muted-foreground">From</label>
+            <label className="text-xs text-muted-foreground">Mode</label>
             <select
-              value={settings.sourceLanguage}
-              onChange={(e) => onUpdate({ sourceLanguage: e.target.value })}
+              value={settings.mode}
+              onChange={(e) => onUpdate({ mode: e.target.value as TranslationMode })}
               className="mt-1 w-full rounded-sm border bg-transparent px-2 py-1.5 text-xs transition-colors focus:border-primary focus:outline-none"
             >
-              {languages.map((lang) => (
-                <option key={lang.code} value={lang.code}>{lang.name}</option>
-              ))}
+              <option value="translate">Translate</option>
+              <option value="define">Definition</option>
             </select>
+            {settings.mode === "define" && (
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                Definitions come from an English dictionary and are translated into the
+                target language. Phrases fall back to a plain translation.
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="text-xs text-muted-foreground">To</label>
+            <label className="text-xs text-muted-foreground">Translate into</label>
             <select
               value={settings.targetLanguage}
               onChange={(e) => onUpdate({ targetLanguage: e.target.value })}
@@ -66,6 +79,9 @@ export function TranslationSettings({ settings, onUpdate, isOpen, onClose, dicti
                 <option key={lang.code} value={lang.code}>{lang.name}</option>
               ))}
             </select>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              The source language is detected automatically.
+            </p>
           </div>
         </div>
 
@@ -84,6 +100,11 @@ export function TranslationSettings({ settings, onUpdate, isOpen, onClose, dicti
               {dictionary.map((entry, i) => (
                 <div key={`${entry.source}-${entry.timestamp}`} className="flex items-center justify-between gap-2 text-xs">
                   <span className="min-w-0 truncate">
+                    {entry.kind === "definition" && (
+                      <span className="mr-1 text-[9px] uppercase tracking-wide text-primary">
+                        def
+                      </span>
+                    )}
                     <span className="text-foreground">{entry.source}</span>
                     <span className="text-muted-foreground"> → </span>
                     <span className="text-foreground">{entry.translation}</span>

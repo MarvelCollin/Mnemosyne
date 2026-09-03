@@ -1,3 +1,4 @@
+import { Library } from "lucide-react"
 import { ThemeToggle } from "./ThemeToggle"
 import { AutoScrollControls } from "@/components/pdf/AutoScrollControls"
 import { ZoomControls } from "@/components/pdf/ZoomControls"
@@ -9,6 +10,7 @@ export function Toolbar({
   theme,
   onThemeChange,
   onClose,
+  onOpenLibrary,
   autoScrollControls,
   zoomControls,
   currentPage,
@@ -30,6 +32,13 @@ export function Toolbar({
           title="Close"
         >
           ×
+        </button>
+        <button
+          onClick={onOpenLibrary}
+          className="flex size-6 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          title="Library"
+        >
+          <Library className="size-3.5" />
         </button>
         <span className="hidden max-w-[200px] truncate text-sm font-medium sm:block">{fileName}</span>
       </div>

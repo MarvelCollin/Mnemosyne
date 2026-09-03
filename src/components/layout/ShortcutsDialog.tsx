@@ -8,6 +8,7 @@ const shortcuts: IShortcut[] = [
   { key: "Ctrl + -", label: "Ctrl + -", description: "Zoom out" },
   { key: "Ctrl + 0", label: "Ctrl + 0", description: "Reset zoom" },
   { key: "D", label: "D", description: "Toggle two page view" },
+  { key: "Alt + ←", label: "Alt + ←", description: "Back from footnote" },
   { key: "?", label: "?", description: "Toggle shortcuts" },
 ]
 
